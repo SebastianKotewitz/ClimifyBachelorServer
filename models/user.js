@@ -1,4 +1,5 @@
 const mongoose = require('mongoose');
+const Joi = require('joi');
 
 
 const userSchema = new mongoose.Schema({
@@ -22,8 +23,9 @@ const User = mongoose.model('User', userSchema);
 
 function validateUser(user) {
     const schema = {
+
         username: Joi.string().min(3).max(12),
-        password: Joi.string().regex("^(?=.*[A-Za-z])(?=.*\d)[A-Za-z\d]{8,}$"),
+        password: Joi.string().regex(/^(?=.*[A-Za-z])(?=.*\d)[A-Za-z\d]{8,}$/),
         isAdmin: Joi.boolean(),
     };
     return Joi.validate(user, schema);

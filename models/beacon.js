@@ -1,7 +1,6 @@
 const mongoose = require('mongoose');
 const Joi = require('joi');
 
-
 const beaconSchema = new mongoose.Schema({
     name: {
        type: String,
@@ -36,7 +35,7 @@ function validateBeacon(beacon) {
         roomId: Joi.objectId().required(),
         location: Joi.string().min(1).max(255),
         name: Joi.string().min(1).max(255).required()
-        };
+    };
 
     return Joi.validate(beacon, schema);
 }
