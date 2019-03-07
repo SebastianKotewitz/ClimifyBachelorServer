@@ -12,10 +12,9 @@ const feedbackSchema = new mongoose.Schema({
                 required: true
             },
             answer: {
-                type: String,
-                minLength: 3,
-                maxLength: 255,
-                required: true
+                type: Number,
+                minValue: 0,
+                maxValue: 10
             }
         }),
     }],
