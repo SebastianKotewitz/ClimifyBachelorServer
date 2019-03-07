@@ -12,11 +12,9 @@ router.post('/', async (req, res) => {
     const question = new Question({
         name: req.body.name,
     });
-    console.log(question);
 
     await question.save();
     res.send(question);
-
 });
 
 router.get('/', async (req, res) => {

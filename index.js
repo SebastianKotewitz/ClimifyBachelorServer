@@ -27,8 +27,10 @@ app.use('/api/rooms', rooms);
 app.use('/api/beacons', beacons);
 app.use('/api/questions', questions);
 app.use(error);
+
 /*
 app.use(function (err, req, res, next) {
     console.error(err.stack)
     res.status(500).send('Something broke!')
-});*/
+});
+*/
