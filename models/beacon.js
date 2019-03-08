@@ -1,5 +1,6 @@
 const mongoose = require('mongoose');
 const Joi = require('joi');
+const {roomSchema} = require('./room');
 
 const beaconSchema = new mongoose.Schema({
     name: {
@@ -15,14 +16,7 @@ const beaconSchema = new mongoose.Schema({
         required: true
     },
     room: {
-        type: new mongoose.Schema({
-            name: {
-                type: String,
-                minLength: 3,
-                maxLength: 255,
-                required: true
-            },
-        }),
+        type: roomSchema,
         required: true
     }
 });

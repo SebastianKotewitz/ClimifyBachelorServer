@@ -1,42 +1,30 @@
 const mongoose = require('mongoose');
 const Joi = require('joi');
+const {questionSchema} = require('./question');
+const {roomSchema} = require('./room');
 
 
 const feedbackSchema = new mongoose.Schema({
     questions: [{
-        type: new mongoose.Schema({
-            name: {
-                type: String,
-                minLength: 3,
-                maxLength: 255,
-                required: true
-            },
-            answer: {
-                type: Number,
-                minValue: 0,
-                maxValue: 10
-            }
-        }),
-    }],
-    userId: {
-        type: mongoose.Schema.ObjectId,
-        required: true
+        name: {
+            type: String,
+            minLength: 3,
+            maxLength: 255,
+            required: true
+        },
+        answer: {
+            type: Number,
+            minValue: 0,
+            maxValue: 10,
+            required: true
+        } }],
+    user: {
+        type: mongoose.Schema.Types.ObjectId,
+        required: true,
+        ref: 'User'
     },
     room: {
-        type: new mongoose.Schema({
-            name: {
-                type: String,
-                minLength: 3,
-                maxLength: 255,
-                required: true
-            },
-            location: {
-                type: String,
-                minLength: 3,
-                maxLength: 255,
-                required: true
-            }
-        }),
+        type: roomSchema,
         required: true
     }
 });
@@ -52,8 +40,7 @@ function validateFeedback(feedback) {
         userId: Joi.objectId().required(),
         questions: Joi.array().items(Joi.object({
             _id: Joi.objectId().required(),
-            name: Joi.string().min(5).max(1024),
-            answer: Joi.string().min(5).max(1024).required()
+            answer: Joi.number().min(0).max(10).required()
         }).required()).required(),
     };
     return Joi.validate(feedback, schema);

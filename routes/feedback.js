@@ -3,6 +3,7 @@ const router = express.Router();
 const { Feedback, validate } = require('../models/feedback');
 const { Room } = require('../models/room');
 const { Question } = require('../models/question');
+const { User } = require('../models/user');
 const _ = require('lodash');
 
 
@@ -17,6 +18,10 @@ router.post('/', async (req, res) => {
     const room = await Room.findById(roomId);
     if (!room) return res.status(404).send("Room with id " + roomId + " was not found");
 
+    const user = await User.findById(userId);
+    if (!user) return res.status(404).send("User with id " + userId + " was not found");
+
+
     const numberOfQuestions = await Question.count();
 
     if (questions.length !== numberOfQuestions)
@@ -30,7 +35,7 @@ router.post('/', async (req, res) => {
 
     let feedback = new Feedback(
         {
-            userId,
+            user: userId,
             room,
             questions
         }
@@ -41,7 +46,7 @@ router.post('/', async (req, res) => {
 });
 
 router.get('/', async (req, res) => {
-    const feedback = await Feedback.find();
+    const feedback = await Feedback.find().populate('user', '-__v -_id');
     console.log(feedback);
     res.send(feedback);
 });

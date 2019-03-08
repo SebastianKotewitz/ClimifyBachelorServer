@@ -27,3 +27,4 @@ function validateQuestion(question) {
 
 module.exports.Question = Question;
 module.exports.validate = validateQuestion;
+module.exports.questionSchema = questionSchema;

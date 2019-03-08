@@ -28,3 +28,4 @@ function validateRoom(room) {
 
 exports.Room = Room;
 exports.validate = validateRoom;
+exports.roomSchema = roomSchema;

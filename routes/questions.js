@@ -2,6 +2,8 @@ const express = require('express');
 const router = express.Router();
 const { Question, validate } = require('../models/question');
 const _ = require('lodash');
+const {Feedback} = require('../models/feedback');
+const mongoose = require('mongoose');
 
 
 router.post('/', async (req, res) => {
@@ -20,6 +22,16 @@ router.post('/', async (req, res) => {
 router.get('/', async (req, res) => {
     const questions = await Question.find();
     res.send(questions);
+});
+
+router.put('/:id', async (req, res) => {
+    const question = await Question.findByIdAndUpdate(mongoose.Types.ObjectId(req.params.id), {
+        $set: {
+            name: req.body.name
+        }
+    }, {new: true});
+
+    res.send(question);
 });
 
 module.exports = router;
