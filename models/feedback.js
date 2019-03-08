@@ -5,19 +5,7 @@ const {roomSchema} = require('./room');
 
 
 const feedbackSchema = new mongoose.Schema({
-    questions: [{
-        name: {
-            type: String,
-            minLength: 3,
-            maxLength: 255,
-            required: true
-        },
-        answer: {
-            type: Number,
-            minValue: 0,
-            maxValue: 10,
-            required: true
-        } }],
+    questions: [questionSchema],
     user: {
         type: mongoose.Schema.Types.ObjectId,
         required: true,
