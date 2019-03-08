@@ -18,6 +18,11 @@ const beaconSchema = new mongoose.Schema({
     room: {
         type: roomSchema,
         required: true
+    },
+    uuid: {
+        type: String,
+        required: true,
+        validate: /^[a-zA-Z\d]{8}-[a-zA-Z\d]{4}-[a-zA-Z\d]{4}-[a-zA-Z\d]{4}-[a-zA-Z\d]{12}$/
     }
 });
 
@@ -28,7 +33,8 @@ function validateBeacon(beacon) {
     const schema = {
         roomId: Joi.objectId().required(),
         location: Joi.string().min(1).max(255),
-        name: Joi.string().min(1).max(255).required()
+        name: Joi.string().min(1).max(255).required(),
+        uuid: Joi.string().regex(/^[a-zA-Z\d]{8}-[a-zA-Z\d]{4}-[a-zA-Z\d]{4}-[a-zA-Z\d]{4}-[a-zA-Z\d]{12}$/).required()
     };
 
     return Joi.validate(beacon, schema);
