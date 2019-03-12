@@ -1,10 +1,12 @@
 let server;
 const request = require('supertest');
+const logger = require('../../startup/logger');
 
 
 describe('/api/feedback', () => {
     beforeEach(() => {
         server = require('../../index');
+        logger.info('hej');
     });
 
     afterEach(() => {

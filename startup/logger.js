@@ -16,4 +16,5 @@ const logger = winston.createLogger({
                 winston.format.colorize(), winston.format.prettyPrint())})
     ]
 });
-module.exports = logger();
+
+module.exports = logger;
