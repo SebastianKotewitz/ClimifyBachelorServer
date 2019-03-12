@@ -45,7 +45,8 @@ router.get('/', auth, async (req, res) => {
     const room = await Room.findById(roomId);
     if (!room) return res.status(404).send(`Room with id ${roomId} was not found`);
 
-    const questions = await Question.find();
+
+    const questions = await Question.find({building: room.building});
     res.send(questions);
 });
 

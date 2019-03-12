@@ -83,12 +83,13 @@ describe('/api/questions', () => {
                 .expect(404, done);
         });
 
-        it('should return question object with roomId field', async (done) => {
+        it('should return question object with roomId field', async () => {
             await user.save();
             const building = new Building({name: '12345'});
             await building.save();
+
             const room = new Room({
-                building: building._id,
+                building: building.id,
                 name: "12345",
                 location: "12345"
             });
@@ -103,12 +104,56 @@ describe('/api/questions', () => {
             await question.save();
 
             const res = await request(server)
+               .get(url)
+               .set({'userId': user._id, 'roomId': room._id});
+
+            expect(res.body[0].building).toEqual(building.id);
+
+        });
+
+        it('should only return questions from detected room/building', async () => {
+            await user.save();
+            const building1 = new Building({name: '12345'});
+            const building2 = new Building({name: '56789'});
+            await building1.save();
+            await building2.save();
+
+            const room = new Room({
+                building: building1._id,
+                name: "12345",
+                location: "12345"
+            });
+
+            const question1 = new Question({
+                name: "12345",
+                building: building1._id
+            });
+
+            const question2 = new Question({
+                name: "12345",
+                building: building2._id
+            });
+            await question1.save();
+            await question2.save();
+
+            await room.save();
+
+            const res = await request(server)
                 .get(url)
                 .set({'userId': user._id, 'roomId': room._id});
 
-            console.log(res.body);
+            expect(res.body.length).toBe(1);
 
-            expect(res.body[0].building).toBe(building._id);
         });
+    });
+
+    describe('POST /', () => {
+        // Post new question as admin on building
+        // 400 user id not provided
+        // 400 buildingId not provided
+        // 400 name not provided
+        // user not admin on building
+
+
     });
 });
