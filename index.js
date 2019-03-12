@@ -13,10 +13,7 @@ const rooms = require('./routes/rooms');
 const questions = require('./routes/questions');
 const beacons = require('./routes/beacons');
 const buildings = require('./routes/buildings');
-const Fawn = require('fawn');
 const logger = require('./startup/logger');
-
-
 const error = require('./middleware/error');
 
 
@@ -41,10 +38,3 @@ app.use('/api/buildings', buildings);
 app.use(error);
 
 module.exports = server;
-
-/*
-app.use(function (err, req, res, next) {
-    console.error(err.stack)
-    res.status(500).send('Something broke!')
-});
-*/

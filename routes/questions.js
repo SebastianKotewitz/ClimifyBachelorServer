@@ -2,11 +2,11 @@ const express = require('express');
 const router = express.Router();
 const { Question, validate } = require('../models/question');
 const _ = require('lodash');
-const {Feedback} = require('../models/feedback');
-const {User} = require('../models/user');
+const {Room} = require('../models/room');
 const {Building} = require('../models/building');
 const mongoose = require('mongoose');
 const auth = require('../middleware/auth');
+
 
 router.post('/', [auth], async (req, res) => {
 
@@ -35,7 +35,16 @@ router.post('/', [auth], async (req, res) => {
     res.send(question);
 });
 
-router.get('/', async (req, res) => {
+router.get('/', auth, async (req, res) => {
+    const roomId = req.header('roomId');
+    if (!roomId) return res.status(400).send('No room id provided');
+
+    if (!mongoose.Types.ObjectId.isValid(roomId))
+        return res.status(400).send(`Room id ${roomId} was not valid`);
+
+    const room = await Room.findById(roomId);
+    if (!room) return res.status(404).send(`Room with id ${roomId} was not found`);
+
     const questions = await Question.find();
     res.send(questions);
 });

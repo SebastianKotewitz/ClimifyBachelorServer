@@ -1,12 +1,14 @@
 let server;
 const request = require('supertest');
 const logger = require('../../startup/logger');
+const debug = require('debug')('app:test');
+
 
 
 describe('/api/feedback', () => {
     beforeEach(() => {
         server = require('../../index');
-        logger.info('hej');
+        //logger.info('hej');
     });
 
     afterEach(() => {
@@ -14,11 +16,15 @@ describe('/api/feedback', () => {
     });
 
     describe('POST /', () => {
-        it('Should return 400 when no userId provided', async () => {
-            const res = await request(server).post('/api/feedback');
-            expect(res.status).toBe(401);
+        /*it('Should return 401 when no userId provided', async () => {
+            let res;
+             res = await request(server)
+                .post('/api/users');
+            expect(res.status).toBe(200);
 
-        });
+            //debug(res);
+            //logger.info(res);
+        });*/
     });
 });
 

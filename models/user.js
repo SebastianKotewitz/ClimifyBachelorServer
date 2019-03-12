@@ -26,7 +26,6 @@ const User = mongoose.model('User', userSchema);
 
 function validateUser(user) {
     const schema = {
-
         username: Joi.string().min(3).max(12),
         password: Joi.string().regex(/^(?=.*[A-Za-z])(?=.*\d)[A-Za-z\d]{8,}$/),
         adminOnBuildingId: Joi.objectId()
