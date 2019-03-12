@@ -1,6 +1,7 @@
 const mongoose = require('mongoose');
+const {feedbackSchema} = require('./feedback');
 const Joi = require('joi');
-const {buildingSchema} = require('./room');
+
 
 const buildingSchema = new mongoose.Schema({
     name: {
@@ -9,23 +10,22 @@ const buildingSchema = new mongoose.Schema({
         maxLength: 255,
         required: true
     },
-    admin: {
-        ref: 'User',
-        type: mongoose.Types.ObjectId
-    },
+    feedback: {
+        type: [mongoose.Schema.ObjectId]
+    }
+
 });
 
 const Building = mongoose.model('Building', buildingSchema);
 
-function validateBeacon(building) {
+function validateBuilding(building) {
 
     const schema = {
-        name: Joi.string().min(1).max(255).required(),
-
+        name: Joi.string().min(1).max(255).required()
     };
 
     return Joi.validate(building, schema);
 }
 
-exports.Beacon = Beacon;
-exports.validate = validateBeacon;
+exports.Building = Building;
+exports.validate = validateBuilding;

@@ -1,6 +1,6 @@
 const mongoose = require('mongoose');
-const Joi = require('joi');
 const {roomSchema} = require('./room');
+const Joi = require('joi');
 
 const beaconSchema = new mongoose.Schema({
     name: {

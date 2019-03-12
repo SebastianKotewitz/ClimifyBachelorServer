@@ -1,13 +1,30 @@
 const mongoose = require('mongoose');
 const Joi = require('joi');
-const {questionSchema} = require('./question');
 const {roomSchema} = require('./room');
 
 
 const feedbackSchema = new mongoose.Schema({
-    questions: [questionSchema],
+    questions: [{
+        _id: {
+            type: mongoose.Types.ObjectId,
+            ref: 'Question',
+            required: true
+        },
+        name: {
+            type: String,
+            minLength: 3,
+            maxLength: 255,
+            required: true
+        },
+        answer: {
+            type: Number,
+            minValue: 0,
+            maxValue: 10,
+            required: true
+        }
+    }],
     user: {
-        type: mongoose.Schema.Types.ObjectId,
+        type: mongoose.Types.ObjectId,
         required: true,
         ref: 'User'
     },
@@ -25,7 +42,6 @@ function validateFeedback(feedback) {
         // You only send genre id
         // Then we find the genre in the separate list
         // and send that with the movie object
-        userId: Joi.objectId().required(),
         questions: Joi.array().items(Joi.object({
             _id: Joi.objectId().required(),
             answer: Joi.number().min(0).max(10).required()
@@ -36,3 +52,4 @@ function validateFeedback(feedback) {
 
 exports.Feedback = Feedback;
 exports.validate = validateFeedback;
+exports.feedbackSchema = feedbackSchema;

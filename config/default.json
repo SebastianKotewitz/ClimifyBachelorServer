@@ -1,0 +1,4 @@
+{
+  "name": "Climify",
+  "db": "mongodb://localhost/climify"
+}

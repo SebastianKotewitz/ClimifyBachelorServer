@@ -13,6 +13,11 @@ const roomSchema = new mongoose.Schema({
         required: true,
         minLength: 1,
         maxLength: 1024
+    },
+    building: {
+        ref: 'Building',
+        type: mongoose.Types.ObjectId,
+        required: true
     }
 });
 
@@ -21,7 +26,8 @@ const Room = mongoose.model('Room', roomSchema);
 function validateRoom(room) {
     const schema = {
         name: Joi.string().min(1).max(255),
-        location: Joi.string().min(1).max(1024)
+        location: Joi.string().min(1).max(1024),
+        buildingId: Joi.objectId().required()
     };
     return Joi.validate(room, schema);
 }

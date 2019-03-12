@@ -16,6 +16,9 @@ const userSchema = new mongoose.Schema({
     isAdmin: {
         type: Boolean,
         default: false
+    },
+    adminOnBuilding: {
+        type: mongoose.Schema.ObjectId
     }
 });
 
@@ -26,7 +29,7 @@ function validateUser(user) {
 
         username: Joi.string().min(3).max(12),
         password: Joi.string().regex(/^(?=.*[A-Za-z])(?=.*\d)[A-Za-z\d]{8,}$/),
-        isAdmin: Joi.boolean(),
+        adminOnBuildingId: Joi.objectId()
     };
     return Joi.validate(user, schema);
 }
