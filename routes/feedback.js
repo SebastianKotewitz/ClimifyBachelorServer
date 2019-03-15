@@ -11,7 +11,6 @@ const auth = require('../middleware/auth');
 
 
 router.post('/', auth, async (req, res) => {
-
     const {error} = validate(req.body);
 
     if (error) return res.status(400).send(error.details[0].message);
@@ -82,7 +81,6 @@ router.get('/userFeedback/:userId', validateId, async (req, res) => {
 
     const feedback = await Feedback.find({user: userId}).populate('user');
     res.send(feedback);
-
 });
 
 module.exports = router;

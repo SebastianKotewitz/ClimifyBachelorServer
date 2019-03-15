@@ -9,11 +9,10 @@ const questionSchema = new mongoose.Schema(
             maxLength: 255,
             required: true
         },
-        answer: {
-            type: Number,
-            minValue: 0,
-            maxValue: 10
-        },
+        answerOptions: [{
+            type: String,
+            required: true
+        }],
         building: {
             type: mongoose.Types.ObjectId,
             ref: 'Building',
@@ -26,9 +25,13 @@ const Question = mongoose.model('Question', questionSchema);
 function validateQuestion(question) {
     const schema = {
         name: Joi.string().min(1).max(255).required(),
-        answer: Joi.number().integer().min(0).max(10),
+        answerOptions: Joi.array().items(Joi.string()).min(1).required(),
         buildingId: Joi.objectId().required()
     };
+
+    //if (question.answerOptions.length < 1)
+    //    return {error: {details: [{message: "hej"}]}}
+
     return Joi.validate(question, schema);
 }
 

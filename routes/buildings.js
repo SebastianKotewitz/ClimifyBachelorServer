@@ -5,19 +5,19 @@ const { User } = require('../models/user');
 const _ = require('lodash');
 const router = express.Router();
 const Fawn = require('fawn');
+const auth = require('../middleware/auth');
 Fawn.init(mongoose);
 
 
-router.post('/', async (req, res) => {
+router.post('/', auth, async (req, res) => {
 
     const {error} = validate(req.body);
     if (error) return res.status(400).send(error.details[0].message);
 
     let {name} = req.body;
-    const userId = req.header('userId');
+    const user = req.user;
 
-
-    const admin = await User.findById(userId);
+    const admin = await User.findById(user._id);
     if (!admin) return res.status(401).send('User with id ' + userId + ' is not authorized in system');
 
     const building = new Building({

@@ -4,7 +4,7 @@
   "description": "",
   "main": "index.js",
   "scripts": {
-    "test": "jest --watchAll --verbose"
+    "test": "mocha"
   },
   "keywords": [],
   "author": "",
@@ -23,7 +23,8 @@
     "winston": "^3.2.1"
   },
   "devDependencies": {
-    "jest": "^24.4.0",
+    "chai": "^4.2.0",
+    "mocha": "^6.0.2",
     "supertest": "^4.0.0"
   }
 }

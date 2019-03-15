@@ -17,17 +17,16 @@ const logger = require('./startup/logger');
 const error = require('./middleware/error');
 
 
-
 const port = process.env.PORT || 3000;
 const server = app.listen(port, () => logger.info(`Listening on port ${port}...`));
+
 
 app.use(express.json());
 
 const db = config.get('db');
-mongoose.connect(db)
-    .then(() => logger.info(`Connected to ${db}...`))
-    .catch(err => logger.error('Could not connect to MongoDB...', err));
-
+mongoose.connect(db, {useNewUrlParser: true})
+    .then(() => console.log(`Connected to ${db}...`))
+    .catch(err => console.log('Could not connect to MongoDB...', err));
 
 app.use('/api/feedback', feedback);
 app.use('/api/users', users);

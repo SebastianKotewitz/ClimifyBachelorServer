@@ -1,6 +1,5 @@
 const mongoose = require('mongoose');
 const Joi = require('joi');
-const {roomSchema} = require('./room');
 
 
 const feedbackSchema = new mongoose.Schema({
@@ -29,10 +28,16 @@ const feedbackSchema = new mongoose.Schema({
         ref: 'User'
     },
     room: {
-        type: roomSchema,
-        required: true
+        type: mongoose.Types.ObjectId,
+        required: true,
+        ref: 'Room'
+    },
+    time: {
+        type: Date,
+        default: Date.now
     }
 });
+
 
 const Feedback = mongoose.model('Feedback', feedbackSchema);
 
