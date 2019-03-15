@@ -173,6 +173,7 @@ describe('/api/questions', () => {
         let name;
         let buildingId;
         let answerOptions;
+        let roomId;
 
         beforeEach(async () => {
             name = '12345';
@@ -180,6 +181,10 @@ describe('/api/questions', () => {
             await building.save();
             buildingId = building._id;
             user.adminOnBuilding = building.id;
+            const room = new Room({name: '222', location: "123", building: buildingId});
+            await room.save();
+            roomId = room._id;
+
             await user.save();
             answerOptions = ['answer1', 'answer2'];
         });
@@ -222,8 +227,8 @@ describe('/api/questions', () => {
             }
         });
 
-        it('400 if buildingId not provided', async () => {
-            building.id = null;
+        it('400 if roomId not provided', async () => {
+            roomId = null;
 
             try {
                 await exec();
@@ -232,9 +237,9 @@ describe('/api/questions', () => {
             }
         });
 
-        it('400 if buildingId not valid', async () => {
+        it('400 if roomId not valid', async () => {
 
-            building.id = '12345';
+            roomId = '12345';
 
             try {
                 await exec();
@@ -243,9 +248,9 @@ describe('/api/questions', () => {
             }
         });
 
-        it('404 if buildingId not found', async () => {
+        it('404 if roomId not found', async () => {
 
-            buildingId = mongoose.Types.ObjectId();
+            roomId = mongoose.Types.ObjectId();
 
             try {
                 await exec();
