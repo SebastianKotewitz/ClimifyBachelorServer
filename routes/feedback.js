@@ -34,6 +34,10 @@ router.post('/', auth, async (req, res) => {
         if (!question || question.building.toString() !== room.building.toString()){
             return res.status(404).send('Question with id ' + questions[i]._id + ' was not found in building');
         }
+
+        if (!question.answerOptions.includes(questions[i].answer))
+            return res.status(400).send('Answer was not an answer option for answered question');
+
         questions[i].name = question.name;
         questionIds.add(questions[i]._id);
     }
@@ -70,7 +74,6 @@ router.get('/buildingFeedback/:id', validateId, async (req, res) => {
     if (!building) return res.status(404).send(`Building with id ${req.params.id} was not found`);
 
     const feedback = await Feedback.find().populate('user', '-__v -_id');
-    console.log(feedback);
     res.send(feedback);
 });
 

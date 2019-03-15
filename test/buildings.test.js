@@ -23,7 +23,6 @@ describe('/api/buildings', () => {
         let buildingName;
 
         const exec = () => {
-            console.log(user);
             return request(server)
                 .post('/api/buildings')
                 .set('userId', user._id)

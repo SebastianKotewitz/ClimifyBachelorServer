@@ -11,7 +11,6 @@ const auth = require('../middleware/auth');
 router.post('/', [auth], async (req, res) => {
 
     const {error} = validate(req.body);
-    console.log(error);
     if (error) return res.status(400).send(error.details[0].message);
 
     const {name, buildingId, answerOptions} = req.body;
@@ -21,7 +20,6 @@ router.post('/', [auth], async (req, res) => {
     const building = await Building.findById(buildingId);
     if (!building) return res.status(404).send('Building with id ' + buildingId + ' was not found.');
 
-
     if (!user.adminOnBuilding || user.adminOnBuilding.toString() !== buildingId.toString())
         return res.status(403).send('Admin rights on the building are required to post new questions');
 
@@ -30,6 +28,7 @@ router.post('/', [auth], async (req, res) => {
         building: buildingId,
         answerOptions
     });
+
 
     await question.save();
     res.send(question);

@@ -16,9 +16,7 @@ const feedbackSchema = new mongoose.Schema({
             required: true
         },
         answer: {
-            type: Number,
-            minValue: 0,
-            maxValue: 10,
+            type: String,
             required: true
         }
     }],
@@ -49,7 +47,7 @@ function validateFeedback(feedback) {
         // and send that with the movie object
         questions: Joi.array().items(Joi.object({
             _id: Joi.objectId().required(),
-            answer: Joi.number().min(0).max(10).required()
+            answer: Joi.string().min(1).max(255).required()
         }).required()).required(),
     };
     return Joi.validate(feedback, schema);

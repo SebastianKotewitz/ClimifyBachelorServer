@@ -11,7 +11,9 @@ const questionSchema = new mongoose.Schema(
         },
         answerOptions: [{
             type: String,
-            required: true
+            required: true,
+            minLength: 1,
+            maxLength: 1024
         }],
         building: {
             type: mongoose.Types.ObjectId,
@@ -25,12 +27,9 @@ const Question = mongoose.model('Question', questionSchema);
 function validateQuestion(question) {
     const schema = {
         name: Joi.string().min(1).max(255).required(),
-        answerOptions: Joi.array().items(Joi.string()).min(1).required(),
+        answerOptions: Joi.array().items(Joi.string().min(1).max(255)).min(1).required(),
         buildingId: Joi.objectId().required()
     };
-
-    //if (question.answerOptions.length < 1)
-    //    return {error: {details: [{message: "hej"}]}}
 
     return Joi.validate(question, schema);
 }

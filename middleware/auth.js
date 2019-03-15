@@ -19,7 +19,6 @@ module.exports = async (req, res, next) => {
 
   const userId = req.header('userId');
   if (!userId) return res.status(401).send('Unauthorized. No userId provided.');
-  console.log(` ${userId}`);
 
   if (!mongoose.Types.ObjectId.isValid(userId))
     return res.status(401).send(`User id ${userId} was not valid`);
