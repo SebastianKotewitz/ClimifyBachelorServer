@@ -118,14 +118,14 @@ describe('/api/feedback', () => {
         });
 
 
-        it('400 if questions array without id', async () => {
+        it('400 if questions array without id', () => {
             questions = [{}];
             exec().catch((e) => {
                 expect(e.status).to.equal(400);
             });
         });
 
-        it('400 if questions array without answer', async () => {
+        it('400 if questions array without answer',  () => {
             questions = [{_id: question._id}];
             exec().catch((e) => {
                 expect(e.status).to.equal(400);

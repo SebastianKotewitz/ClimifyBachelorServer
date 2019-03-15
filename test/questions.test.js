@@ -6,16 +6,20 @@ const {Building} = require('../models/building');
 const {Question} = require('../models/question');
 const mongoose = require('mongoose');
 const assert = require('assert');
+const expect = require('chai').expect;
+
 
 
 describe('/api/questions', () => {
     let server;
     let user;
     let url;
+    let userId;
 
     beforeEach(async () => {
         server = require('../index');
         user = new User();
+        userId = user._id;
         await user.save();
     });
 
@@ -38,6 +42,7 @@ describe('/api/questions', () => {
         // Return array of questions
         let room;
         let building;
+        let buildingId;
 
         const exec = () => {
             return request(server)
@@ -48,9 +53,10 @@ describe('/api/questions', () => {
         beforeEach(async () => {
             building = new Building({name: '12345'});
             await building.save();
+            buildingId = building._id;
 
             room = new Room({
-                building: building.id,
+                building: buildingId,
                 name: "12345",
                 location: "12345"
             });
@@ -165,34 +171,38 @@ describe('/api/questions', () => {
         // returns new question with provided building id
         let building;
         let name;
+        let buildingId;
+        let answerOptions;
 
         beforeEach(async () => {
             name = '12345';
             building = new Building({name});
             await building.save();
+            buildingId = building._id;
             user.adminOnBuilding = building.id;
             await user.save();
+            answerOptions = ['answer1', 'answer2'];
         });
 
         const exec = () => {
             return request(server)
                 .post(url)
-                .set('userId', user.id)
-                .send({buildingId: building.id, name: '12345'});
+                .set('userId', userId)
+                .send({roomId, name: '12345', answerOptions});
         };
 
         it('401 if user id not provided', async () => {
-            user.id = null;
+            userId = null;
 
             try {
-            await exec();
+                await exec();
             } catch (e) {
                 assert.strictEqual(e.status, 401);
             }
         });
 
         it('401 if user id not valid', async () => {
-            user.id = '12345';
+            userId = '12345';
 
             try {
                 await exec();
@@ -203,7 +213,7 @@ describe('/api/questions', () => {
 
         it('404 if user was not found', async () => {
 
-            user.id = mongoose.Types.ObjectId();
+            userId = mongoose.Types.ObjectId();
 
             try {
                 await exec();
@@ -235,11 +245,12 @@ describe('/api/questions', () => {
 
         it('404 if buildingId not found', async () => {
 
-            building.id = mongoose.Types.ObjectId();
+            buildingId = mongoose.Types.ObjectId();
 
             try {
                 await exec();
             } catch (e) {
+                console.log(e);
                 assert.strictEqual(e.status, 404);
             }
         });
@@ -267,7 +278,7 @@ describe('/api/questions', () => {
             }
         });
 
-        it('should return question object with proper building id', async () => {
+        it('should return question object with proper room id', async () => {
 
             const res = await exec();
 
@@ -290,7 +301,7 @@ describe('/api/questions', () => {
             await request(server)
                 .post(url)
                 .set('userId', user.id)
-                .send({buildingId: building.id, name: '12345'});
+                .send({buildingId: building.id, name: '12345', answerOptions: ['answer1', 'answer2']});
 
             user.adminOnBuilding = building2.id;
             await user.save();
@@ -298,13 +309,28 @@ describe('/api/questions', () => {
             await request(server)
                 .post(url)
                 .set('userId', user.id)
-                .send({buildingId: building2.id, name: '12345'});
+                .send({buildingId: building2.id, name: '12345', answerOptions: ['answer3', 'answer4']});
 
             const res = await request(server)
                 .get(url)
                 .set({roomId: room.id, userId: user.id});
 
             assert.strictEqual(res.body.length, 1);
+        });
+
+        it('should return 400 if answer options not provided',   (done) => {
+            answerOptions = null;
+
+            // try {
+            //     await exec();
+            // } catch (e) {
+            //     expect(e.status).to.be.equal(400)
+            // }
+
+            exec().catch(err => {
+                expect(err.status).to.be.equal(400);
+                done();
+            });
         });
 
     });

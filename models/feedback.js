@@ -30,7 +30,7 @@ const feedbackSchema = new mongoose.Schema({
         required: true,
         ref: 'Room'
     },
-    time: {
+    created: {
         type: Date,
         default: Date.now
     }
