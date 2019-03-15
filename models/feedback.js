@@ -29,12 +29,8 @@ const feedbackSchema = new mongoose.Schema({
         type: mongoose.Types.ObjectId,
         required: true,
         ref: 'Room'
-    },
-    created: {
-        type: Date,
-        default: Date.now
     }
-});
+}, {timestamps: true});
 
 
 const Feedback = mongoose.model('Feedback', feedbackSchema);

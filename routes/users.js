@@ -41,9 +41,7 @@ router.patch('/makeAdmin', async (req, res) => {
 router.get('/', async (req, res) => {
     const users = await User.find();
 
-    User.findByIdAndUpdate(users[0]._id,)
     res.send(users);
-
 
 });
 
