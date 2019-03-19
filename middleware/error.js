@@ -6,6 +6,7 @@ module.exports = function (err, req, res, next) {
     * With error method first argument is the message to be logged,
     * the next arguments are all objects to be stored with the log message */
     //winston.error(err.message, err);
+    console.log(err);
     if (err.name === 'ValidationError') {
         return res.status(500).send("Database validation failed. " + err.message);
     }

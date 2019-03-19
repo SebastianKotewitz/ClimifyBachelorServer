@@ -1,20 +1,29 @@
-const {User} = require('../models/user');
+const {User} = require('../../models/user');
 const request = require('supertest');
 const assert = require('assert');
+const mongoose = require('mongoose');
+const app = require('../..');
+const config = require('config');
+let server;
 
 describe('/api/buildings', () => {
-    let server;
     let user;
 
+    before(async () => {
+        server = app.listen(config.get('port'));
+        await mongoose.connect(config.get('db'), {useNewUrlParser: true});
+    });
+    after(async () => {
+        await server.close();
+        await mongoose.connection.close();
+    });
+
     beforeEach(async () => {
-        server = require('../index');
         user = new User();
         await user.save();
     });
-
-    afterEach(async () => {
+    afterEach( async () => {
         await User.deleteMany();
-        await server.close();
     });
 
     describe('POST /', () => {
@@ -29,11 +38,17 @@ describe('/api/buildings', () => {
                 .send(building);
         };
 
+
         beforeEach(async () => {
             buildingName = '324';
 
             building = {name: buildingName};
         });
+
+        afterEach(async () => {
+            await server.close();
+        });
+
 
         it('401 if userId not provided in header', async () => {
             user._id = null;
@@ -62,3 +77,4 @@ describe('/api/buildings', () => {
 
     });
 });
+

@@ -1,14 +1,14 @@
 
 const request = require('supertest');
-const {User} = require('../models/user');
-const {Room} = require('../models/room');
-const {Building} = require('../models/building');
-const {Question} = require('../models/question');
+const {User} = require('../../models/user');
+const {Room} = require('../../models/room');
+const {Building} = require('../../models/building');
+const {Question} = require('../../models/question');
 const mongoose = require('mongoose');
 const assert = require('assert');
 const expect = require('chai').expect;
-
-
+const app = require('../..');
+const config = require('config');
 
 describe('/api/questions', () => {
     let server;
@@ -16,21 +16,26 @@ describe('/api/questions', () => {
     let url;
     let userId;
 
+    before(async () => {
+        server = await app.listen(config.get('port'));
+        await mongoose.connect(config.get('db'), {useNewUrlParser: true});
+    });
+    after(async () => {
+        await server.close();
+        await mongoose.connection.close();
+    });
+
     beforeEach(async () => {
-        server = require('../index');
         user = new User();
         userId = user._id;
         await user.save();
     });
-
     afterEach(async () => {
         await User.deleteMany();
-        await Question.deleteMany();
         await Building.deleteMany();
         await Room.deleteMany();
-        await server.close();
+        await Question.deleteMany();
     });
-
 
     describe('GET /', () => {
 
@@ -43,11 +48,12 @@ describe('/api/questions', () => {
         let room;
         let building;
         let buildingId;
+        let roomId;
 
         const exec = () => {
             return request(server)
                 .get('/api/questions')
-                .set({'userId': user._id, 'roomId': room._id});
+                .set({'userId': user._id, 'roomId': roomId});
         };
 
         beforeEach(async () => {
@@ -60,11 +66,14 @@ describe('/api/questions', () => {
                 name: "12345",
                 location: "12345"
             });
+
             await room.save();
+            roomId = room._id;
 
             const question = new Question({
                 name: "12345",
-                building: building._id
+                room: roomId,
+                answerOptions: ['hej']
             });
 
             await question.save();
@@ -92,6 +101,7 @@ describe('/api/questions', () => {
 
         it('404 if user was not found', async () => {
             user = new User();
+
 
             try{
                 await exec();
@@ -132,11 +142,23 @@ describe('/api/questions', () => {
                 assert.strictEqual(e.status, 404);
             }
         });
+        it('should return questions array with 1 length', async () => {
+            const res = await exec();
+            expect(res.body.length).to.be.equal(1);
+        });
+
+        it('should return 200 when getting questions array with valid parameters',  async () => {
+            const res = await exec();
+
+            expect(res.status).to.be.equal(200);
+
+
+        });
 
         it('should return question object with roomId field', async () => {
 
             const res = await exec();
-            assert.strictEqual(res.body[0].building, building.id);
+            assert.strictEqual(res.body[0].room, roomId.toString());
         });
 
         it('should only return questions from detected room/building', async () => {
@@ -144,9 +166,12 @@ describe('/api/questions', () => {
             const building2 = new Building({name: '56789'});
             await building2.save();
 
+            const room2 = new Room({building: building2._id, name: "hej", location: "hej"});
+            await room2.save();
+
             const question2 = new Question({
                 name: "12345",
-                building: building2._id
+                room: room2._id
             });
 
             await question2.save();
@@ -255,7 +280,6 @@ describe('/api/questions', () => {
             try {
                 await exec();
             } catch (e) {
-                console.log(e);
                 assert.strictEqual(e.status, 404);
             }
         });
@@ -287,7 +311,7 @@ describe('/api/questions', () => {
 
             const res = await exec();
 
-            assert.strictEqual(res.body.building, building.id);
+            assert.strictEqual(res.body.room, roomId.toString());
         });
 
         it('should only return 1 length array when posted question for two different buildings', async () => {
@@ -296,17 +320,17 @@ describe('/api/questions', () => {
             user.adminOnBuilding = building.id;
             await user.save();
 
-            const room = new Room({
-                building: building._id,
+            const room2 = new Room({
+                building: building2._id,
                 name: "12345",
                 location: "12345"
             });
-            await room.save();
+            await room2.save();
 
             await request(server)
                 .post(url)
                 .set('userId', user.id)
-                .send({buildingId: building.id, name: '12345', answerOptions: ['answer1', 'answer2']});
+                .send({roomId: roomId, name: '12345', answerOptions: ['answer1', 'answer2']});
 
             user.adminOnBuilding = building2.id;
             await user.save();
@@ -314,11 +338,11 @@ describe('/api/questions', () => {
             await request(server)
                 .post(url)
                 .set('userId', user.id)
-                .send({buildingId: building2.id, name: '12345', answerOptions: ['answer3', 'answer4']});
+                .send({roomId: room2.id, name: '12345', answerOptions: ['answer3', 'answer4']});
 
             const res = await request(server)
                 .get(url)
-                .set({roomId: room.id, userId: user.id});
+                .set({roomId: roomId, userId: user.id});
 
             assert.strictEqual(res.body.length, 1);
         });

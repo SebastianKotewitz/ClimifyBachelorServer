@@ -1,22 +1,29 @@
-const {User} = require('../models/user');
+const {User} = require('../../models/user');
 const request = require('supertest');
 let assert = require('assert');
+const app = require('../..');
 let server;
+const config = require('config');
+const mongoose = require('mongoose');
 
 describe('/api/users', () => {
     let user;
 
+    before(async () => {
+        server = app.listen(config.get('port'));
+        await mongoose.connect(config.get('db'), {useNewUrlParser: true});
+    });
+    after(async () => {
+        await server.close();
+        await mongoose.connection.close();
+    });
 
     beforeEach(async () => {
-        server = require('../index');
-
         user = new User();
         await user.save();
     });
-
     afterEach(async () => {
         await User.deleteMany();
-        await server.close();
     });
 
 
@@ -29,6 +36,10 @@ describe('/api/users', () => {
                 .post('/api/users')
                 .send(body);
         };
+
+        beforeEach(async () => {
+
+        });
 
 
         // 400 if random parameter in body is passed

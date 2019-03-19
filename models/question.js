@@ -9,15 +9,18 @@ const questionSchema = new mongoose.Schema(
             maxLength: 255,
             required: true
         },
-        answerOptions: [{
-            type: String,
-            required: true,
-            minLength: 1,
-            maxLength: 1024
-        }],
-        building: {
+        answerOptions: {
+            type: [{
+                type: String,
+                required: true,
+                minLength: 1,
+                maxLength: 1024
+            }],
+            required: true
+        },
+        room: {
             type: mongoose.Types.ObjectId,
-            ref: 'Building',
+            ref: 'Room',
             required: true
         }
     });
@@ -27,8 +30,8 @@ const Question = mongoose.model('Question', questionSchema);
 function validateQuestion(question) {
     const schema = {
         name: Joi.string().min(1).max(255).required(),
-        answerOptions: Joi.array().items(Joi.string().min(1).max(255)).min(1).required(),
-        buildingId: Joi.objectId().required()
+        answerOptions: Joi.array().items(Joi.string().min(1).max(1024)).min(1).required(),
+        roomId: Joi.objectId().required()
     };
 
     return Joi.validate(question, schema);
