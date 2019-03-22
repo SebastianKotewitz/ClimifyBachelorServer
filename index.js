@@ -18,7 +18,7 @@ const morgan = require('morgan');
 
 app.use(morgan('dev'));
 
-const port = config.get('port') || 3000;
+const port = config.get('port') || 80;
 
 const logger = require('./startup/logger');
 //
