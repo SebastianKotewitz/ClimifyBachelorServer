@@ -3,19 +3,10 @@ const Joi = require('joi');
 
 const questionSchema = new mongoose.Schema(
     {
-        name: {
+        value: {
             type: String,
-            minLength: 3,
-            maxLength: 255,
-            required: true
-        },
-        answerOptions: {
-            type: [{
-                type: String,
-                required: true,
-                minLength: 1,
-                maxLength: 1024
-            }],
+            minlength: 3,
+            maxlength: 1024,
             required: true
         },
         room: {
@@ -29,8 +20,7 @@ const Question = mongoose.model('Question', questionSchema);
 
 function validateQuestion(question) {
     const schema = {
-        name: Joi.string().min(1).max(255).required(),
-        answerOptions: Joi.array().items(Joi.string().min(1).max(1024)).min(1).required(),
+        value: Joi.string().min(1).max(255).required(),
         roomId: Joi.objectId().required()
     };
 

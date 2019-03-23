@@ -1,10 +1,10 @@
 const express = require('express');
 const mongoose = require('mongoose');
-const {User, validate} = require('../models/user');
+const {User, validate} = require('../../models/user');
 const _ = require('lodash');
 const router = express.Router();
-const auth = require('../middleware/auth');
-const {Building} = require('../models/building');
+const auth = require('../../middleware/auth');
+const {Building} = require('../../models/building');
 
 router.post('/', async (req, res) => {
 

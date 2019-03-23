@@ -10,7 +10,7 @@ describe('/api/users', () => {
     let user;
 
     before(async () => {
-        server = app.listen(config.get('port'));
+        server = app.listen( config.get('port'));
         await mongoose.connect(config.get('db'), {useNewUrlParser: true});
     });
     after(async () => {

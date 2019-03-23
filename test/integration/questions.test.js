@@ -71,9 +71,8 @@ describe('/api/questions', () => {
             roomId = room._id;
 
             const question = new Question({
-                name: "12345",
+                value: "12345",
                 room: roomId,
-                answerOptions: ['hej']
             });
 
             await question.save();
@@ -170,7 +169,7 @@ describe('/api/questions', () => {
             await room2.save();
 
             const question2 = new Question({
-                name: "12345",
+                value: "12345",
                 room: room2._id
             });
 
@@ -189,20 +188,19 @@ describe('/api/questions', () => {
         // 401 userId not valid
         // 404 user not found
         // 400 buildingId not provided
-        // 400 name not provided
+        // 400 value not provided
         // 400 buildingId not valid
         // 404 building not found
         // 403 user not admin on building
         // returns new question with provided building id
         let building;
-        let name;
+        let value;
         let buildingId;
-        let answerOptions;
         let roomId;
 
         beforeEach(async () => {
-            name = '12345';
-            building = new Building({name});
+            value = '12345';
+            building = new Building({name: value});
             await building.save();
             buildingId = building._id;
             user.adminOnBuilding = building.id;
@@ -211,14 +209,13 @@ describe('/api/questions', () => {
             roomId = room._id;
 
             await user.save();
-            answerOptions = ['answer1', 'answer2'];
         });
 
         const exec = () => {
             return request(server)
                 .post(url)
                 .set('userId', userId)
-                .send({roomId, name: '12345', answerOptions});
+                .send({roomId, value});
         };
 
         it('401 if user id not provided', async () => {
@@ -284,8 +281,8 @@ describe('/api/questions', () => {
             }
         });
 
-        it('400 if name not provided', async () => {
-            name = null;
+        it('400 if value not provided', async () => {
+            value = null;
 
             try {
                 await exec();
@@ -330,7 +327,7 @@ describe('/api/questions', () => {
             await request(server)
                 .post(url)
                 .set('userId', user.id)
-                .send({roomId: roomId, name: '12345', answerOptions: ['answer1', 'answer2']});
+                .send({roomId: roomId, value: '12345'});
 
             user.adminOnBuilding = building2.id;
             await user.save();
@@ -338,28 +335,13 @@ describe('/api/questions', () => {
             await request(server)
                 .post(url)
                 .set('userId', user.id)
-                .send({roomId: room2.id, name: '12345', answerOptions: ['answer3', 'answer4']});
+                .send({roomId: room2.id, value: '12345'});
 
             const res = await request(server)
                 .get(url)
                 .set({roomId: roomId, userId: user.id});
 
             assert.strictEqual(res.body.length, 1);
-        });
-
-        it('should return 400 if answer options not provided',   (done) => {
-            answerOptions = null;
-
-            // try {
-            //     await exec();
-            // } catch (e) {
-            //     expect(e.status).to.be.equal(400)
-            // }
-
-            exec().catch(err => {
-                expect(err.status).to.be.equal(400);
-                done();
-            });
         });
 
     });

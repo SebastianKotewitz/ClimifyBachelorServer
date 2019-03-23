@@ -16,16 +16,25 @@ const roomSchema = new mongoose.Schema({
     },
     building: {
         ref: 'Building',
-        type: mongoose.Types.ObjectId,
+        type: mongoose.Schema.Types.ObjectId,
         required: true
-    }
+    },
+    activeQuestions: {
+        type: [{
+            type: mongoose.Schema.Types.ObjectId,
+            required: true,
+            ref: "Question"
+        }],
+        required: true
+    },
+
 });
 
 const Room = mongoose.model('Room', roomSchema);
 
 function validateRoom(room) {
     const schema = {
-        name: Joi.string().min(1).max(255),
+        name: Joi.string().min(1).max(255).required(),
         location: Joi.string().min(1).max(1024),
         buildingId: Joi.objectId().required()
     };

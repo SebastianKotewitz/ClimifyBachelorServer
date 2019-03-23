@@ -1,6 +1,6 @@
 const express = require('express');
-const {Room, validate} = require('../models/room');
-const {Building} = require('../models/building');
+const {Room, validate} = require('../../models/room');
+const {Building} = require('../../models/building');
 const _ = require('lodash');
 const router = express.Router();
 

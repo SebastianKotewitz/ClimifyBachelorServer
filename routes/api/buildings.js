@@ -1,11 +1,11 @@
 const express = require('express');
 const mongoose = require('mongoose');
-const { Building, validate } = require('../models/building');
-const { User } = require('../models/user');
+const { Building, validate } = require('../../models/building');
+const { User } = require('../../models/user');
 const _ = require('lodash');
 const router = express.Router();
 const Fawn = require('fawn');
-const auth = require('../middleware/auth');
+const auth = require('../../middleware/auth');
 Fawn.init(mongoose);
 
 

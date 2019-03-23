@@ -10,6 +10,8 @@
   "author": "",
   "license": "ISC",
   "dependencies": {
+    "body-parser": "^1.18.3",
+    "chai-as-promised": "^7.1.1",
     "config": "^3.0.1",
     "debug": "^4.1.1",
     "dotenv": "^6.2.0",

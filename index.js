@@ -5,26 +5,29 @@ const Joi = require('joi');
 Joi.objectId = require('joi-objectid')(Joi);
 const express = require('express');
 const app = express();
-const feedback = require('./routes/feedback');
+const feedback = require('./routes/api/feedback');
 const mongoose = require('mongoose');
-const users = require('./routes/users');
-const rooms = require('./routes/rooms');
-const questions = require('./routes/questions');
-const beacons = require('./routes/beacons');
-const buildings = require('./routes/buildings');
+const users = require('./routes/api/users');
+const rooms = require('./routes/api/rooms');
+const questions = require('./routes/api/questions');
+const beacons = require('./routes/api/beacons');
+const buildings = require('./routes/api/buildings');
 const error = require('./middleware/error');
 const { createLogger, format, transports } = require('winston');
 const morgan = require('morgan');
+const bodyParser = require("body-parser");
 
+app.use(bodyParser.json());
 app.use(morgan('dev'));
 
-const port = config.get('port') || 80;
+const port = config.get('port') || 3000;
 
 const logger = require('./startup/logger');
 //
 // If we're not in production then **ALSO** log to the `console`
 // with the colorized simple format.
 //
+
 
 if (process.env.NODE_ENV !== 'test')
 {
@@ -38,6 +41,7 @@ if (process.env.NODE_ENV !== 'test')
 
 
 app.use(express.json());
+
 
 
 app.use('/api/feedback', feedback);

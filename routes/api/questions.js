@@ -1,11 +1,11 @@
 const express = require('express');
 const router = express.Router();
-const { Question, validate } = require('../models/question');
+const { Question, validate } = require('../../models/question');
 const _ = require('lodash');
-const {Room} = require('../models/room');
-const {Building} = require('../models/building');
+const {Room} = require('../../models/room');
+const {Building} = require('../../models/building');
 const mongoose = require('mongoose');
-const auth = require('../middleware/auth');
+const auth = require('../../middleware/auth');
 
 
 router.post('/', [auth], async (req, res) => {
@@ -13,7 +13,7 @@ router.post('/', [auth], async (req, res) => {
     const {error} = validate(req.body);
     if (error) return res.status(400).send(error.details[0].message);
 
-    const {name, roomId, answerOptions} = req.body;
+    const {value, roomId} = req.body;
 
     const user = req.user;
 
@@ -27,9 +27,8 @@ router.post('/', [auth], async (req, res) => {
         return res.status(403).send('Admin rights on the building are required to post new questions');
 
     const question = new Question({
-        name,
+        value,
         room: roomId,
-        answerOptions
     });
 
 
@@ -58,7 +57,7 @@ router.put('/:id', async (req, res) => {
 
     const question = await Question.findByIdAndUpdate(req.params.id, {
         $set: {
-            name: req.body.name,
+            value: req.body.value,
             answer: req.body.answer
         }
     }, {new: true});

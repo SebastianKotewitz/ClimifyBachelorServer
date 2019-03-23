@@ -1,14 +1,15 @@
 const express = require('express');
 const router = express.Router();
-const { Feedback, validate } = require('../models/feedback');
-const { Room } = require('../models/room');
-const { Question } = require('../models/question');
-const { User } = require('../models/user');
-const { Building } = require('../models/building');
+const { Feedback, validate } = require('../../models/feedback');
+const { Room } = require('../../models/room');
+const { Answer } = require('../../models/answer');
+const { Question } = require('../../models/question');
+const { User } = require('../../models/user');
+const { Building } = require('../../models/building');
 const _ = require('lodash');
-const validateId = require('../middleware/validateIdParam');
-const auth = require('../middleware/auth');
-const logger = require('../startup/logger');
+const validateId = require('../../middleware/validateIdParam');
+const auth = require('../../middleware/auth');
+const logger = require('../../startup/logger');
 
 
 router.post('/', auth, async (req, res) => {
@@ -16,7 +17,7 @@ router.post('/', auth, async (req, res) => {
 
     if (error) return res.status(400).send(error.details[0].message);
 
-    const {roomId, questions} = req.body;
+    const {roomId, answerId, questionId} = req.body;
 
     const room = await Room.findById(roomId);
     if (!room) return res.status(404).send("Room with id " + roomId + " was not found");
@@ -24,11 +25,13 @@ router.post('/', auth, async (req, res) => {
     const user = await User.findById(req.user._id);
     if (!user) return res.status(404).send("User with id " + user._id + " was not found");
 
-    const numberOfQuestions = await Question.countDocuments({room: roomId});
+    const answer = await Answer.findById(answerId);
+    if (!answer) return res.status(404).send("Answer with id " + answerId + " was not found");
 
-    if (questions.length !== numberOfQuestions)
-        return res.status(400).send('Insufficient or too many questions answered. ' + numberOfQuestions + ' question(s) should be answered');
+    const question = await Question.findById(questionId);
+    if (!question) return res.status(404).send("Question with id " + questionId + " was not found");
 
+/*
     const questionIds = new Set();
     for (let i = 0; i < questions.length; i++) {
         const question = await Question.findById(questions[i]._id);
@@ -39,7 +42,7 @@ router.post('/', auth, async (req, res) => {
         }
 
         if (!question.answerOptions.includes(questions[i].answer)){
-            const errorMessage = 'Answer was not an answer option for answered question';
+            const errorMessage = 'Room was not an answer option for answered question';
             logger.warn(errorMessage);
             return res.status(400).send(errorMessage);
         }
@@ -47,18 +50,22 @@ router.post('/', auth, async (req, res) => {
         questions[i].name = question.name;
         questionIds.add(questions[i]._id);
     }
+*/
 
     // Check if question array posted has any duplicates:
+/*
     if (questionIds.size !== questions.length){
         logger.debug('hej');
         return res.status(400).send('Some questions appeared more than once. Please only answer unique questions');
     }
+*/
 
     let feedback = new Feedback(
         {
             user: user._id,
-            room,
-            questions
+            room: roomId,
+            answer: answerId,
+            question: questionId
         }
     );
 

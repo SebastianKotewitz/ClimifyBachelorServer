@@ -1,7 +1,7 @@
 const express = require('express');
 const router = express.Router();
-const { Beacon, validate } = require('../models/beacon');
-const { Room } = require('../models/room');
+const { Beacon, validate } = require('../../models/beacon');
+const { Room } = require('../../models/room');
 const _ = require('lodash');
 
 

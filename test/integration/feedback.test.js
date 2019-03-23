@@ -3,6 +3,7 @@ const {Building} = require('../../models/building');
 const {Question} = require('../../models/question');
 const {Feedback} = require('../../models/feedback');
 const {Room} = require('../../models/room');
+const {Answer} = require('../../models/answer');
 const logger = require('../../startup/logger');
 const expect = require('chai').expect;
 const request = require('supertest');
@@ -20,6 +21,8 @@ describe('/api/feedback', () => {
     let building;
     let userId;
     let roomId;
+    let answer;
+    let questionId;
 
     before(async () => {
         server = await app.listen(config.get('port'));
@@ -47,7 +50,7 @@ describe('/api/feedback', () => {
             return request(server)
                 .post('/api/feedback')
                 .set({'userId': userId})
-                .send({roomId, questions})
+                .send({roomId, questionId, answerId: answer._id})
         };
 
         beforeEach(async () => {
@@ -65,10 +68,12 @@ describe('/api/feedback', () => {
 
             roomId = room._id;
 
-            question = new Question({name: '123', room: room._id, answerOptions: ['hej']});
-            // questions = [question];
+            question = new Question({value: '123', room: room._id});
             await question.save();
-            questions = [{_id: question.id, answer: 'hej'}]
+            questionId = question._id;
+
+            answer = new Answer({value: "perfect", question: question._id});
+            await answer.save();
 
         });
 
@@ -115,8 +120,8 @@ describe('/api/feedback', () => {
             }
         });
 
-        it('400 if questions array not provided', async () => {
-            questions = null;
+        it('400 if question not provided', async () => {
+            questionId = null;
 
             try {
                 await exec();
@@ -126,7 +131,6 @@ describe('/api/feedback', () => {
             throw new Error('Should have thrown error');
         });
 
-
         it('400 if questions array empty', async () => {
             questions = [];
             try {
@@ -135,7 +139,6 @@ describe('/api/feedback', () => {
                 expect(e.status).to.equal(400);
             }
         });
-
 
         it('400 if questions array without id', async () => {
             questions = [{}];
@@ -164,7 +167,7 @@ describe('/api/feedback', () => {
             const room2 = new Room({name: "123", location: "h123", building: building2._id});
             await room2.save();
 
-            const question2 = new Question({name: '12345', room: room2._id});
+            const question2 = new Question({value: '12345', room: room2._id});
             await question2.save();
 
             questions = [{_id: question2._id, answer: 2}];
@@ -228,10 +231,12 @@ describe('/api/feedback', () => {
 
             roomId = room._id;
 
-            const question = new Question({name: '123', answerOptions: ['hej'], room: roomId});
+            const question = new Question({value: '123',  room: roomId});
+            const answer = new Answer({value: "123", question: question._id});
 
             feedback = new Feedback({
-                questions: [{_id: question._id, name: question.name, answer: 'answer'}],
+                answer: answer._id,
+                question: question._id,
                 user: user._id, room: roomId
             });
 
@@ -240,9 +245,7 @@ describe('/api/feedback', () => {
         });
 
         it('should return 404 if room not found', async () => {
-
             roomId = mongoose.Types.ObjectId();
-
             try {
                 await exec();
             } catch (e) {
@@ -261,11 +264,14 @@ describe('/api/feedback', () => {
             const room2 = new Room({name: '222', location: '123', building: building._id});
             await room2.save();
 
-            const question = new Question({name: '123', answerOptions: ['hej'], room: room2._id});
+            const question = new Question({value: '123', room: room2._id});
+            const answer = new Answer({value: "hey", question: question._id});
 
             const feedback2 = new Feedback({
-                questions: [{_id: question._id, name: question.name, answer: 'answer'}],
-                user: user._id, room: room2.id
+                question: question._id,
+                answer: answer.id,
+                room: room2._id,
+                user: user._id
             });
 
             await feedback2.save();
