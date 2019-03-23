@@ -16,6 +16,7 @@ const error = require('./middleware/error');
 const { createLogger, format, transports } = require('winston');
 const morgan = require('morgan');
 const bodyParser = require("body-parser");
+const morganBody = require("morgan-body");
 
 app.use(bodyParser.json());
 app.use(morgan('dev'));
@@ -23,6 +24,7 @@ app.use(morgan('dev'));
 const port = config.get('port') || 3000;
 
 const logger = require('./startup/logger');
+morganBody(app);
 //
 // If we're not in production then **ALSO** log to the `console`
 // with the colorized simple format.

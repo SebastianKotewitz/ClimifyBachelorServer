@@ -23,6 +23,7 @@
     "lodash": "^4.17.11",
     "mongoose": "^5.4.17",
     "morgan": "^1.9.1",
+    "morgan-body": "^2.4.5",
     "sinon": "^7.2.7",
     "winston": "^3.2.1"
   },
