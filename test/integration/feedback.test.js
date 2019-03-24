@@ -5,24 +5,27 @@ const {Feedback} = require('../../models/feedback');
 const {Room} = require('../../models/room');
 const {Answer} = require('../../models/answer');
 const logger = require('../../startup/logger');
-const expect = require('chai').expect;
 const request = require('supertest');
 const mongoose = require('mongoose');
-const assert = require('assert');
 const app = require('../..');
 const config = require('config');
+const chai = require("chai");
+const chaiAsPromised = require("chai-as-promised");
+chai.use(chaiAsPromised);
+const expect = require('chai').expect;
+const jwt = require("jsonwebtoken");
 
 describe('/api/feedback', () => {
     let server;
     let user;
     let room;
-    let questions;
     let question;
     let building;
-    let userId;
+    let token;
     let roomId;
     let answer;
     let questionId;
+    let answerId;
 
     before(async () => {
         server = await app.listen(config.get('port'));
@@ -49,15 +52,15 @@ describe('/api/feedback', () => {
         const exec = () => {
             return request(server)
                 .post('/api/feedback')
-                .set({'userId': userId})
-                .send({roomId, questionId, answerId: answer._id})
+                .set({'x-auth-token': token})
+                .send({roomId, questionId, answerId})
         };
 
         beforeEach(async () => {
             building = new Building({name: '324'});
             await building.save();
 
-            userId = user._id;
+            token = user.generateAuthToken();
 
             room = new Room({
                 name: '123',
@@ -73,92 +76,43 @@ describe('/api/feedback', () => {
             questionId = question._id;
 
             answer = new Answer({value: "perfect", question: question._id});
+            answerId = answer._id;
             await answer.save();
 
         });
 
-        it('should return 401 if userId not provided', async () => {
-            userId = null;
-
-            try {
-                await exec();
-            } catch (e) {
-                assert.strictEqual(e.status, 401)
-                // expect(e.status).to.equal(401);
-            }
+        it('should return 401 if token not provided', async () => {
+            token = "";
+            await expect(exec()).to.be.rejectedWith("Unauthorized");
         });
 
-        it('should return 401 if invalid userId', async () => {
-            userId = '123';
-
-            try {
-                await exec();
-            } catch (e) {
-                expect(e.status).to.equal(401);
-            }
+        it('should return 400 if invalid token', async () => {
+            token = '123';
+            await expect(exec()).to.be.rejectedWith("Bad Request");
         });
 
 
-        it('404 if user with userId not found', async () => {
-            userId = mongoose.Types.ObjectId();
-            try {
-                await exec();
-            } catch (e) {
-                expect(e.status).to.equal(404);
-            }
+        it('400 if invalid token', async () => {
+            token = jwt.sign({hej: "hej"}, "hej");
+            await expect(exec()).to.be.rejectedWith("Bad Request");
+
         });
 
         it('400 if roomId not provided', async () => {
-
             roomId = null;
-
-
-            try {
-                await exec();
-            } catch (e) {
-                expect(e.status).to.equal(400);
-            }
+            await expect(exec()).to.be.rejectedWith("Bad Request");
         });
 
         it('400 if question not provided', async () => {
             questionId = null;
-
-            try {
-                await exec();
-            } catch (e) {
-                return expect(e.status).to.equal(400);
-            }
-            throw new Error('Should have thrown error');
+            await expect(exec()).to.be.rejectedWith("Bad Request");
         });
 
-        it('400 if questions array empty', async () => {
-            questions = [];
-            try {
-                await exec();
-            } catch (e) {
-                expect(e.status).to.equal(400);
-            }
+        it('400 if questionId not set', async () => {
+            questionId = null;
+            await expect(exec()).to.be.rejectedWith("Bad Request");
         });
 
-        it('400 if questions array without id', async () => {
-            questions = [{}];
-
-            try {
-                await exec();
-            } catch (e) {
-                expect(e.status).to.equal(400);
-            }
-        });
-
-        it('400 if questions array without answer', async () => {
-            questions = [{_id: question._id}];
-
-            try {
-                await exec();
-            } catch (e) {
-                expect(e.status).to.equal(400);
-            }
-        });
 
         it('400 if one question was not from same building as room', async () => {
             const building2 = new Building({name: '1234'});
@@ -170,17 +124,19 @@ describe('/api/feedback', () => {
             const question2 = new Question({value: '12345', room: room2._id});
             await question2.save();
 
-            questions = [{_id: question2._id, answer: 2}];
+            questionId = question2.id;
 
-            try {
-                await exec();
-            } catch (e) {
-                expect(e.status).to.equal(400);
-            }
+            await expect(exec()).to.be.rejectedWith("Bad Request");
         });
 
         it('400 if question array length was not the same as room question array length', async () => {
 
+        });
+
+        it("Should return 400 if question was from other room than feedback", async () => {
+            question.room = mongoose.Types.ObjectId();
+            await question.save();
+            await expect(exec()).to.be.rejectedWith("Bad Request");
         });
 
         it('should return 200 if all fields provided correctly', async () => {
@@ -192,22 +148,6 @@ describe('/api/feedback', () => {
                 throw e;
             }
         });
-        // 401 if userId not provided
-        // 401 if userId invalid
-        // 404 if user with userId not found
-        // 400 if roomId not provided
-        // 404 if room not found
-        // 400 if random parameter
-        // 400 if questions array not provided
-        // 400 if questions array empty
-        // 400 if questions array without _id
-        // 400 if questions array without answer
-        // 400 if one question was not from
-        //   same building as room
-        // 400 if question array length was not
-        //   same length as room question array
-        // should return feedback object with proper userId
-        // should populate feedback array in building object
     });
 
     describe(' GET /roomFeedback/:id', () => {
@@ -219,7 +159,7 @@ describe('/api/feedback', () => {
         const exec = () => {
             return request(server)
                 .get('/api/feedback/roomFeedback/' + roomId)
-                .set('userId', user._id);
+                .set('token', user._id);
         };
 
         beforeEach(async () => {
@@ -246,12 +186,7 @@ describe('/api/feedback', () => {
 
         it('should return 404 if room not found', async () => {
             roomId = mongoose.Types.ObjectId();
-            try {
-                await exec();
-            } catch (e) {
-                expect(e.status).to.be.equal(404);
-            }
-
+            await expect(exec()).to.be.rejectedWith("Not Found");
         });
 
         it('should return feedback with roomId', async () => {

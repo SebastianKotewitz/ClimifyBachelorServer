@@ -5,6 +5,12 @@ const app = require('../..');
 let server;
 const config = require('config');
 const mongoose = require('mongoose');
+const jwt = require("jsonwebtoken");
+const chai = require("chai");
+const chaiAsPromised = require("chai-as-promised");
+chai.use(chaiAsPromised);
+const expect = chai.expect;
+chai.should();
 
 describe('/api/users', () => {
     let user;
@@ -29,33 +35,81 @@ describe('/api/users', () => {
 
     describe('POST /', () => {
 
-        let body;
+        describe("Unauthorized user", () => {
+            let body;
+            beforeEach(() => {
+                body = {};
+            });
 
-        const exec = () => {
-            return request(server)
-                .post('/api/users')
-                .send(body);
-        };
+            const exec = () => {
+                return request(server)
+                  .post("/api/users")
+                  .send(body);
+            };
+
+            // 400 if random parameter in body is passed
+            it('400 if  random parameter in body is passed', async () => {
+                body = {hej: "12345"};
+                await expect(exec()).to.be.rejectedWith("Bad Request");
+            });
+
+            it("Should have user role 0 when no email+password provided", async () => {
+                const res = await exec();
+                const decoded = jwt.decode(res.header["x-auth-token"]);
+                const user = await User.findById(decoded._id);
+                assert.strictEqual(user.role, 0);
+            });
+
+            it("Should be a valid mongoose id decoded by returned json web token", async () => {
+                const res = await exec();
+                const decoded = jwt.decode(res.header["x-auth-token"]);
+                assert.strictEqual(mongoose.Types.ObjectId.isValid(decoded._id), true);
+            });
+        });
+
+        describe("Authorized user", () => {
+            let email;
+            let password;
+
+            const exec = () => {
+                return request(server)
+                  .post('/api/users')
+                  .send({email, password});
+            };
+
+            beforeEach(async () => {
+                email = "user1@gmail.com";
+                password = "Asdf1234";
+            });
+
+            afterEach(async () => {
+                await User.deleteMany();
+            });
 
 
-        // 400 if random parameter in body is passed
-        it('400 if random parameter in body is passed', async () => {
-            body = {hej: "12345"};
-
-            try {
+            it("Should create user with authorized role if valid email and password provided", async () => {
                 await exec();
-            } catch (e) {
-                assert.strictEqual(e.status, 400);
-            }
+                const user = await User.findOne({email});
+
+                assert.strictEqual(user.role, 1);
+            });
+
+            it("should return 400 if email invalid", async () => {
+                email = "user@";
+                await expect(exec()).to.be.rejectedWith("Bad Request");
+            });
+
+            it("Should not allow two users to be created with the same email", async () => {
+                await exec();
+                await expect(exec()).to.be.rejectedWith("Bad Request");
+            });
+
+            it("Should return json web token in header that can be decoded to valid mongoose _id", async () => {
+                const res = await exec();
+                const decodedToken = jwt.decode(res.headers["x-auth-token"]);
+                expect(mongoose.Types.ObjectId.isValid(decodedToken._id)).to.be.true;
+            });
 
         });
-
-
-        it('should return user object with isAdmin=false', async () => {
-            body = {};
-            const res = await exec();
-            assert.strictEqual(res.body.isAdmin, false);
-        });
-
     });
 });

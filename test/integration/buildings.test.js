@@ -34,7 +34,7 @@ describe('/api/buildings', () => {
         const exec = () => {
             return request(server)
                 .post('/api/buildings')
-                .set('userId', user._id)
+                .set('x-auth-token', user.generateAuthToken())
                 .send(building);
         };
 

@@ -3,15 +3,19 @@ const router = express.Router();
 const { Beacon, validate } = require('../../models/beacon');
 const { Room } = require('../../models/room');
 const _ = require('lodash');
+const auth = require("../../middleware/auth");
 
 
-router.post('/', async (req, res) => {
+router.post('/', auth, async (req, res) => {
 
     const {error} = validate(req.body);
     if (error) return res.status(400).send(error.details[0].message);
 
+    if (req.user.role < 1) return res.status(403).send("Forbidden. User should be authorized");
+
     let {location, roomId, name, uuid} = req.body;
 
+    console.log(location);
 
     const room = await Room.findById(roomId);
     if (!room) return res.status(404).send('Room with id ' + roomId + ' was not found');
@@ -27,7 +31,7 @@ router.post('/', async (req, res) => {
     });
 
     await beacon.save();
-    res.send(beacon);
+    res.send(_.pick(beacon, ["_id", "room", "location", "name", "uuid"]));
 });
 
 router.get('/', async (req, res) => {

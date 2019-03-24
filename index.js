@@ -12,24 +12,33 @@ const rooms = require('./routes/api/rooms');
 const questions = require('./routes/api/questions');
 const beacons = require('./routes/api/beacons');
 const buildings = require('./routes/api/buildings');
+const auth = require('./routes/api/auth');
 const error = require('./middleware/error');
-const { createLogger, format, transports } = require('winston');
+// const { createLogger, format, transports } = require('winston');
 const morgan = require('morgan');
 const bodyParser = require("body-parser");
-const morganBody = require("morgan-body");
+const endMiddleware = require("./startup/resBodyLogger");
+
+// To disable CORS
+app.use(function(req, res, next) {
+    res.header("Access-Control-Allow-Origin", "*");
+    res.header("Access-Control-Allow-Headers", "Origin, X-Requested-With, Content-Type, Accept");
+    next();
+});
 
 app.use(bodyParser.json());
-app.use(morgan('dev'));
+morgan.token("reqBody", (req) => `Req body: ${JSON.stringify(req.body)}`);
+app.use(morgan("dev"));
+app.use(morgan(":reqBody", {immediate: true}));
 
 const port = config.get('port') || 3000;
 
 const logger = require('./startup/logger');
-morganBody(app);
-//
-// If we're not in production then **ALSO** log to the `console`
-// with the colorized simple format.
-//
 
+if (!process.env.jwtPrivateKey) {
+    console.error("FATAL ERROR: jwtPrivateKey not set");
+    process.exit(1);
+}
 
 if (process.env.NODE_ENV !== 'test')
 {
@@ -38,20 +47,18 @@ if (process.env.NODE_ENV !== 'test')
     mongoose.connect(db, {useNewUrlParser: true})
         .then(() => logger.info(`Connected to ${db}...`))
         .catch(err => logger.info('Could not connect to MongoDB...', err));
-
 }
-
 
 app.use(express.json());
 
-
-
+app.use(endMiddleware);
 app.use('/api/feedback', feedback);
 app.use('/api/users', users);
 app.use('/api/rooms', rooms);
 app.use('/api/beacons', beacons);
 app.use('/api/questions', questions);
 app.use('/api/buildings', buildings);
+app.use('/api/auth', auth);
 app.use(error);
 
 module.exports = app;

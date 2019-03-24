@@ -1,19 +1,41 @@
 const express = require('express');
-const mongoose = require('mongoose');
-const {User, validate} = require('../../models/user');
+const {User, validate, validateAuthorized} = require('../../models/user');
 const _ = require('lodash');
 const router = express.Router();
-const auth = require('../../middleware/auth');
-const {Building} = require('../../models/building');
+const bcrypt = require("bcrypt");
 
 router.post('/', async (req, res) => {
 
-    const {error} = validate(req.body);
-    if (error) return res.status(400).send(error.details[0].message);
+    let error;
+    let user;
 
-    let user = new User(req.body);
+    if (req.body.email) {
+        error = validateAuthorized(req.body);
+    } else {
+        error = validate(req.body);
+    }
+
+    if (error.error) return res.status(400).send(error.error.details[0].message);
+
+
+    if (req.body.email) {
+        const {email, password} = req.body;
+        if (await User.findOne({email})) return res.status(400).send("User already registered");
+
+        const salt = await bcrypt.genSalt();
+        user = new User(_.pick(req.body, ['email', "password"]));
+        user.password = await bcrypt.hash(password, salt);
+        user.role = 1; // Authorized
+    } else {
+        user = new User();
+    }
+
+
     await user.save();
-    res.send(user);
+
+    const token = user.generateAuthToken();
+
+    res.header('x-auth-token', token).send(_.pick(user, ["_id", "email"]));
 });
 
 router.get('/', async (req, res) => {
@@ -30,21 +52,5 @@ router.patch('/makeAdmin', async (req, res) => {
 
     res.send(user);
 });
-
-// router.patch('/connectToBuilding/:id', auth, async (req, res) => {
-//     if (!mongoose.Types.ObjectId.isValid(req.params.id))
-//         return res.status(404).send('Building id ' + req.params.id + ' is invalid');
-//
-//     const building = await Building.findById(req.params.id);
-//     if (!building) return res.status(404).send('Building with id ' + req.params.id + ' was not found');
-//
-//     const user = req.user;
-//
-//     user.building = req.params.id;
-//     await user.save();
-//     res.send(user);
-// });
-
-
 
 module.exports = router;

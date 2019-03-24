@@ -9,8 +9,6 @@ const { Building } = require('../../models/building');
 const _ = require('lodash');
 const validateId = require('../../middleware/validateIdParam');
 const auth = require('../../middleware/auth');
-const logger = require('../../startup/logger');
-
 
 router.post('/', auth, async (req, res) => {
     const {error} = validate(req.body);
@@ -31,34 +29,8 @@ router.post('/', auth, async (req, res) => {
     const question = await Question.findById(questionId);
     if (!question) return res.status(404).send("Question with id " + questionId + " was not found");
 
-/*
-    const questionIds = new Set();
-    for (let i = 0; i < questions.length; i++) {
-        const question = await Question.findById(questions[i]._id);
-        if (!question || question.room.toString() !== room.id){
-            const errorMessage = 'Question with id ' + questions[i]._id + ' was not found in room';
-            logger.warn(errorMessage);
-            return res.status(404).send(errorMessage);
-        }
-
-        if (!question.answerOptions.includes(questions[i].answer)){
-            const errorMessage = 'Room was not an answer option for answered question';
-            logger.warn(errorMessage);
-            return res.status(400).send(errorMessage);
-        }
-
-        questions[i].name = question.name;
-        questionIds.add(questions[i]._id);
-    }
-*/
-
-    // Check if question array posted has any duplicates:
-/*
-    if (questionIds.size !== questions.length){
-        logger.debug('hej');
-        return res.status(400).send('Some questions appeared more than once. Please only answer unique questions');
-    }
-*/
+    if (question.room.toString() !== roomId)
+        return res.status(400).send("Question was not from the same room as the feedback given");
 
     let feedback = new Feedback(
         {
@@ -74,7 +46,7 @@ router.post('/', auth, async (req, res) => {
 
     await feedback.save();
     await building.save();
-    res.send(feedback);
+    res.send(_.pick(feedback, ["_id", "user", "room", "answer", "question"]));
 
 });
 

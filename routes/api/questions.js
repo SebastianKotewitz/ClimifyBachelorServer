@@ -1,6 +1,7 @@
 const express = require('express');
 const router = express.Router();
 const { Question, validate } = require('../../models/question');
+const { Answer } = require('../../models/answer');
 const _ = require('lodash');
 const {Room} = require('../../models/room');
 const {Building} = require('../../models/building');
@@ -13,9 +14,14 @@ router.post('/', [auth], async (req, res) => {
     const {error} = validate(req.body);
     if (error) return res.status(400).send(error.details[0].message);
 
-    const {value, roomId} = req.body;
+    if (req.user.role < 1 ) return res.status(403).send("User should be authorized to post questions");
+
+    const {value, roomId, answerOptions} = req.body;
 
     const user = req.user;
+
+    if (answerOptions.length < 2)
+        res.status(400).send("Minimum 2 answer options should be provided");
 
     const room = await Room.findById(roomId);
     if (!room) return res.status(404).send('Room with id ' + roomId + ' was not found.');
@@ -31,9 +37,13 @@ router.post('/', [auth], async (req, res) => {
         room: roomId,
     });
 
+    for (let i = 0; i < answerOptions.length; i++) {
+        let answer = new Answer({value: answerOptions[i], question: question.id});
+        await answer.save();
+    }
 
     await question.save();
-    res.send(question);
+    res.send(_.pick(question, ["_id", "room", "value"]));
 });
 
 router.get('/', auth, async (req, res) => {

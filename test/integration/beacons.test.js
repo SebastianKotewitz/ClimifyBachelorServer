@@ -1,13 +1,19 @@
 const {User} = require('../../models/user');
+const {Room} = require('../../models/room');
 const request = require('supertest');
-let assert = require('assert');
+const chai = require("chai");
+const chaiAsPromised = require("chai-as-promised");
+chai.use(chaiAsPromised);
+const expect = require("chai").expect;
 const app = require('../..');
 let server;
 const config = require('config');
 const mongoose = require('mongoose');
 
-describe('/api/users', () => {
+describe('/api/beacons', () => {
     let user;
+    let room;
+    let token;
 
     before(async () => {
         server = app.listen(config.get('port'));
@@ -19,7 +25,14 @@ describe('/api/users', () => {
     });
 
     beforeEach(async () => {
-        user = new User();
+        user = new User({role: 1});
+        room = new Room({
+            name: "222",
+            building: mongoose.Types.ObjectId(),
+            activeQuestions: [mongoose.Types.ObjectId()],
+            location: "222"
+        });
+        await room.save();
         await user.save();
     });
     afterEach(async () => {
@@ -28,38 +41,45 @@ describe('/api/users', () => {
 
 
     describe('POST /', () => {
+        let roomId;
+        let name;
+        let location;
+        let uuid;
+        let randomParam;
 
-        let body;
 
         const exec = () => {
             return request(server)
-                .post('/api/users')
-                .send(body);
+              .post('/api/beacons')
+              .set("x-auth-token", token)
+              .send({uuid, roomId, name, location, randomParam});
         };
 
         beforeEach(async () => {
-
+            token = user.generateAuthToken();
+            uuid = "vsk1vs12-vsk1-sk12-vk12-vk12vk12vk12";
+            roomId = room.id;
+            name = "beacon1";
+            location = "222";
+            randomParam = undefined;
         });
-
 
         // 400 if random parameter in body is passed
-        it('400 if random parameter in body is passed', async () => {
-            body = {hej: "12345"};
-
-            try {
-                await exec();
-            } catch (e) {
-                assert.strictEqual(e.status, 400);
-            }
+        it('400 if random parameter in body is parsed', async () => {
+            randomParam = "hej";
+            await expect(exec()).to.be.rejectedWith("Bad Request");
 
         });
 
+        it("should return 403 if user with unauthorized role (0) tries to post beacon", async () => {
+            user.role = 0;
+            await user.save();
+            await expect(exec()).to.be.rejectedWith("Forbidden");
+        });
 
-        it('should return user object with isAdmin=false', async () => {
-            body = {};
+        it("Should post new beacon with right parameters", async () => {
             const res = await exec();
-            assert.strictEqual(res.body.isAdmin, false);
+            expect(res.status).to.equal(200);
         });
-
     });
 });
