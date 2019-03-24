@@ -32,6 +32,23 @@ describe('/api/users', () => {
         await User.deleteMany();
     });
 
+    describe("GET /", () => {
+
+        const exec = () => {
+            return request(server)
+              .get("/api/users");
+        };
+
+        it("Should not return password", async () => {
+            const user = new User({email: "hej", password: "yo"});
+            await user.save();
+            const res = await exec();
+            const users = res.body;
+            const password = users.find((elem) => elem._id === user.id).password;
+            console.log(password);
+            expect(password).to.not.be.ok;
+        });
+    });
 
     describe('POST /', () => {
 
