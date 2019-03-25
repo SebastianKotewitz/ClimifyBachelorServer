@@ -4,6 +4,10 @@ const assert = require('assert');
 const mongoose = require('mongoose');
 const app = require('../..');
 const config = require('config');
+const chai = require("chai");
+const chaiAsPromised = require("chai-as-promised");
+chai.use(chaiAsPromised);
+const expect = require("chai").expect;
 let server;
 
 describe('/api/buildings', () => {
@@ -30,19 +34,19 @@ describe('/api/buildings', () => {
 
         let building;
         let buildingName;
+        let token;
 
         const exec = () => {
             return request(server)
                 .post('/api/buildings')
-                .set('x-auth-token', user.generateAuthToken())
-                .send(building);
+                .set('x-auth-token', token)
+                .send({name: buildingName});
         };
 
 
         beforeEach(async () => {
             buildingName = '324';
-
-            building = {name: buildingName};
+            token = user.generateAuthToken();
         });
 
         afterEach(async () => {
@@ -50,22 +54,14 @@ describe('/api/buildings', () => {
         });
 
 
-        it('401 if userId not provided in header', async () => {
-            user._id = null;
-            try {
-                await exec();
-            } catch (e) {
-                assert.strictEqual(e.status, 401);
-            }
+        it('400 if json token not provided in header', async () => {
+            token = null;
+            await expect(exec()).to.be.rejectedWith("Bad Request");
         });
 
         it('400 if name not provided', async () => {
             buildingName = null;
-            try {
-                await exec();
-            } catch (e) {
-                assert.strictEqual(e.status, 400);
-            }
+            await expect(exec()).to.be.rejectedWith("Bad Request");
         });
 
         it('should have user as admin on newly posted building', async () => {

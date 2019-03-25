@@ -1,7 +1,7 @@
 const express = require('express');
-const {validateAuthorized} = require("../../models/user");
+const {validateAuthorized} = require("../models/user");
 const bcrypt = require("bcrypt");
-const {User} = require("../../models/user");
+const {User} = require("../models/user");
 const router = express.Router();
 
 const FAIL_AUTH_TEXT = "Invalid email or password";

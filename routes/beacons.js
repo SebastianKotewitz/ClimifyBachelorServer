@@ -1,12 +1,12 @@
 const express = require('express');
 const router = express.Router();
-const { Beacon, validate } = require('../../models/beacon');
-const { Room } = require('../../models/room');
+const { Beacon, validate } = require('../models/beacon');
+const { Room } = require('../models/room');
 const _ = require('lodash');
-const auth = require("../../middleware/auth");
+const {auth, authorized} = require("../middleware/auth");
 
 
-router.post('/', auth, async (req, res) => {
+router.post('/', [auth, authorized], async (req, res) => {
 
     const {error} = validate(req.body);
     if (error) return res.status(400).send(error.details[0].message);

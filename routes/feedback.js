@@ -1,14 +1,14 @@
 const express = require('express');
 const router = express.Router();
-const { Feedback, validate } = require('../../models/feedback');
-const { Room } = require('../../models/room');
-const { Answer } = require('../../models/answer');
-const { Question } = require('../../models/question');
-const { User } = require('../../models/user');
-const { Building } = require('../../models/building');
+const { Feedback, validate } = require('../models/feedback');
+const { Room } = require('../models/room');
+const { Answer } = require('../models/answer');
+const { Question } = require('../models/question');
+const { User } = require('../models/user');
+const { Building } = require('../models/building');
 const _ = require('lodash');
-const validateId = require('../../middleware/validateIdParam');
-const auth = require('../../middleware/auth');
+const validateId = require('../middleware/validateIdParam');
+const {auth} = require('../middleware/auth');
 
 router.post('/', auth, async (req, res) => {
     const {error} = validate(req.body);

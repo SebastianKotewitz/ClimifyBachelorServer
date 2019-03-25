@@ -74,6 +74,7 @@ describe('/api/beacons', () => {
         it("should return 403 if user with unauthorized role (0) tries to post beacon", async () => {
             user.role = 0;
             await user.save();
+            token = user.generateAuthToken();
             await expect(exec()).to.be.rejectedWith("Forbidden");
         });
 
