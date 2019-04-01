@@ -3,6 +3,7 @@ const {Building} = require('../../models/building');
 const {Question} = require('../../models/question');
 const {Feedback} = require('../../models/feedback');
 const {Room} = require('../../models/room');
+const {Beacon} = require('../../models/beacon');
 const {Answer} = require('../../models/answer');
 const logger = require('../../startup/logger');
 const request = require('supertest');
@@ -45,6 +46,8 @@ describe('/api/feedback', () => {
         await Building.deleteMany();
         await Room.deleteMany();
         await Question.deleteMany();
+        await Beacon.deleteMany();
+        await Feedback.deleteMany();
     });
 
     describe(' POST /', () => {
@@ -81,9 +84,9 @@ describe('/api/feedback', () => {
 
         });
 
-        it('should return 401 if token not provided', async () => {
+        it('should return 400 if token not provided', async () => {
             token = "";
-            await expect(exec()).to.be.rejectedWith("Unauthorized");
+            await expect(exec()).to.be.rejectedWith("Bad Request");
         });
 
         it('should return 400 if invalid token', async () => {
@@ -155,17 +158,22 @@ describe('/api/feedback', () => {
         let roomId;
         let feedback;
         let building;
+        let baseUrl;
+        let queryStrings;
+        let jsonToken;
 
         const exec = () => {
             return request(server)
-                .get('/api/feedback/roomFeedback/' + roomId)
-                .set('token', user._id);
+              .get(baseUrl + roomId + queryStrings)
+              .set('x-auth-token', jsonToken);
         };
 
         beforeEach(async () => {
+            baseUrl = '/api/feedback/roomFeedback/';
+            queryStrings = "/";
             building = new Building({name: '324'});
             await building.save();
-
+            jsonToken = user.generateAuthToken();
             const room = new Room({name: '222', location: '123', building: building._id});
             await room.save();
 
@@ -214,5 +222,142 @@ describe('/api/feedback', () => {
             const res = await exec();
             expect(res.body.length).to.be.equal(1);
         });
+
+        it("should only return users feedback when query string param parsed", async () => {
+            queryStrings = "/?user=me";
+
+            let feedback2 = new Feedback({
+                answer: mongoose.Types.ObjectId(),
+                question: mongoose.Types.ObjectId(),
+                user: mongoose.Types.ObjectId(), room: roomId
+            });
+            await feedback2.save();
+
+            const res = await exec();
+            expect(res.body.length).to.equal(1);
+        });
+
+        it("should still return all feedback when random user query string param parsed", async () => {
+            queryStrings = "/?user=all";
+
+            let feedback2 = new Feedback({
+                answer: mongoose.Types.ObjectId(),
+                question: mongoose.Types.ObjectId(),
+                user: mongoose.Types.ObjectId(), room: roomId
+            });
+            await feedback2.save();
+
+            const res = await exec();
+            expect(res.body.length).to.equal(2);
+        });
+
+        it("Should only return feedback within a month when time query parsed in url", async () => {
+            queryStrings = "/?t=month";
+            let today = new Date();
+
+            let dateOverOneMonthAgo = new Date();
+            dateOverOneMonthAgo.setDate(today.getDate() - 32);
+
+            let feedback2 = new Feedback({
+                answer: mongoose.Types.ObjectId(),
+                question: mongoose.Types.ObjectId(),
+                user: mongoose.Types.ObjectId(),
+                room: roomId,
+                createdAt: dateOverOneMonthAgo
+            });
+            await feedback2.save();
+
+            const res = await exec();
+            expect(res.body.length).to.equal(1);
+        });
+
+        it("should only return feedback within a year when year restriction set in query", async () => {
+            queryStrings = "/?t=year";
+            let today = new Date();
+
+            let dateOverOneMonthAgo = new Date();
+            dateOverOneMonthAgo.setMonth(today.getMonth() - 13);
+
+            let feedback2 = new Feedback({
+                answer: mongoose.Types.ObjectId(),
+                question: mongoose.Types.ObjectId(),
+                user: mongoose.Types.ObjectId(),
+                room: roomId,
+                createdAt: dateOverOneMonthAgo
+            });
+            await feedback2.save();
+
+            const res = await exec();
+            expect(res.body.length).to.equal(1);
+        });
+
+        it("should only return feedback within a week when week restriction set in query", async () => {
+            queryStrings = "/?t=week";
+            let today = new Date();
+
+            let dateOverOneMonthAgo = new Date();
+            dateOverOneMonthAgo.setDate(today.getDate() - 8);
+
+            let feedback2 = new Feedback({
+                answer: mongoose.Types.ObjectId(),
+                question: mongoose.Types.ObjectId(),
+                user: mongoose.Types.ObjectId(),
+                room: roomId,
+                createdAt: dateOverOneMonthAgo
+            });
+            await feedback2.save();
+
+            const res = await exec();
+            expect(res.body.length).to.equal(1);
+        });
+
+        it("should only return feedback from today when today-restriction set in query", async () => {
+            queryStrings = "/?t=day";
+            let today = new Date();
+
+            let dateOverOneMonthAgo = new Date();
+            dateOverOneMonthAgo.setHours(today.getHours() - 25);
+
+            let feedback2 = new Feedback({
+                answer: mongoose.Types.ObjectId(),
+                question: mongoose.Types.ObjectId(),
+                user: mongoose.Types.ObjectId(),
+                room: roomId,
+                createdAt: dateOverOneMonthAgo
+            });
+            await feedback2.save();
+
+            const res = await exec();
+            expect(res.body.length).to.equal(1);
+        });
+
+        it("should only return feedback objects from user and within a week", async () => {
+            queryStrings = "/?t=week&user=me";
+            let today = new Date();
+
+            let dateOverOneMonthAgo = new Date();
+            dateOverOneMonthAgo.setDate(today.getDate() - 8);
+
+            let feedback2 = new Feedback({
+                answer: mongoose.Types.ObjectId(),
+                question: mongoose.Types.ObjectId(),
+                user: user.id,
+                room: roomId,
+                createdAt: dateOverOneMonthAgo
+            });
+
+            let feedback3 = new Feedback({
+                answer: mongoose.Types.ObjectId(),
+                question: mongoose.Types.ObjectId(),
+                user: mongoose.Types.ObjectId(),
+                room: roomId,
+            });
+            await feedback2.save();
+            await feedback3.save();
+
+            const res = await exec();
+            expect(res.body.length).to.equal(1);
+        });
+
     });
 });

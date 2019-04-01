@@ -46,7 +46,7 @@ router.post('/', [auth], async (req, res) => {
     res.send(_.pick(question, ["_id", "room", "value"]));
 });
 
-router.get('/', async (req, res) => {
+router.get('/', auth, async (req, res) => {
     const roomId = req.header('roomId');
     if (!roomId) return res.status(400).send('No room id provided');
 

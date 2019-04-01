@@ -1,4 +1,5 @@
 const {User} = require('../../models/user');
+const {Building} = require('../../models/building');
 const request = require('supertest');
 const assert = require('assert');
 const mongoose = require('mongoose');
@@ -66,9 +67,9 @@ describe('/api/buildings', () => {
 
         it('should have user as admin on newly posted building', async () => {
             assert.strictEqual(user.adminOnBuilding, undefined);
-            await exec();
-            const newUser = User.findById(user._id);
-            assert.strictEqual(newUser.adminOnBuilding, building._id);
+            const res = await exec();
+            const newUser = await User.findById(user._id);
+            assert.strictEqual(newUser.adminOnBuilding.toString(), res.body._id);
         });
 
     });

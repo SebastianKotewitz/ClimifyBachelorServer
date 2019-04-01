@@ -22,4 +22,8 @@ describe('Question in database', () => {
         await expect(question.validate()).to.be.rejectedWith(mongoose.ValidationError);
     });
 
+    it("Should have a list of answer options", async () => {
+        question.answerOptions = []
+    });
+
 });

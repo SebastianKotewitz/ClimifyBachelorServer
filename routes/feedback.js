@@ -9,6 +9,7 @@ const { Building } = require('../models/building');
 const _ = require('lodash');
 const validateId = require('../middleware/validateIdParam');
 const {auth} = require('../middleware/auth');
+const mongoose = require("mongoose");
 
 router.post('/', auth, async (req, res) => {
     const {error} = validate(req.body);
@@ -73,16 +74,61 @@ router.get('/userFeedback/:userId', validateId, async (req, res) => {
     res.send(feedback);
 });
 
-router.get('/roomFeedback/:roomId', validateId, async (req, res) => {
+
+router.get('/roomFeedback/:roomId', auth, validateId, async (req, res) => {
+
+
     const roomId = req.params.roomId;
     const room = await Room.findById(roomId);
     if (!room)
         return res.status(404).send(`Room with id ${roomId} was not found`);
 
-    const feedback = await Feedback.find({room: roomId});
+    let feedback;
 
+
+
+    let query = feedbackQuery(req.query, req.user._id);
+    query.room = roomId;
+
+    feedback = await Feedback.find(query);
     res.send(feedback);
 
 });
+
+function feedbackQuery (query, userId) {
+    let feedbackQuery = {};
+    let today = new Date();
+
+    switch (query.t) {
+        case "day":
+            feedbackQuery.createdAt = {
+                $gt: new Date(today.getFullYear(), today.getMonth(), today.getDate(), today.getHours()-24, today.getMinutes(), today.getSeconds())
+            };
+            break;
+        case "week":
+            feedbackQuery.createdAt = {
+                $gt: new Date(today.getFullYear(), today.getMonth(), today.getDate()-7, today.getHours(), today.getMinutes(), today.getSeconds())
+            };
+            break;
+        case "month":
+            feedbackQuery.createdAt = {
+                $gt: new Date(today.getFullYear(), today.getMonth() - 1, today.getDate(), today.getHours(), today.getMinutes(), today.getSeconds())
+            };
+            break;
+        case "year":
+            feedbackQuery.createdAt = {
+                $gt: new Date(today.getFullYear() - 1, today.getMonth(), today.getDate(), today.getHours(), today.getMinutes(), today.getSeconds())
+            };
+            break;
+    }
+
+    switch (query.user) {
+        case "me":
+            feedbackQuery.user = userId;
+            break;
+    }
+
+    return feedbackQuery;
+}
 
 module.exports = router;

@@ -13,7 +13,8 @@ const questionSchema = new mongoose.Schema(
             type: mongoose.Types.ObjectId,
             ref: 'Room',
             required: true
-        }
+        },
+
     });
 
 const Question = mongoose.model('Question', questionSchema);
