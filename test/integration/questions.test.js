@@ -47,6 +47,8 @@ describe('/api/questions', () => {
         let buildingId;
         let roomId;
         let token;
+        let answerOption1;
+        let answerOption2;
 
         const exec = () => {
             return request(server)
@@ -68,10 +70,14 @@ describe('/api/questions', () => {
             await room.save();
             roomId = room._id;
             token = user.generateAuthToken();
-
+            answerOption1 = new Answer({value: "hej"});
+            answerOption2 = new Answer({value: "hej2"});
+            await answerOption1.save();
+            await answerOption2.save();
             const question = new Question({
                 value: "12345",
                 room: roomId,
+                answerOptions: [answerOption1.id,answerOption2.id]
             });
 
             await question.save();
@@ -135,13 +141,81 @@ describe('/api/questions', () => {
 
             const question2 = new Question({
                 value: "12345",
-                room: room2._id
+                room: room2._id,
+                answerOptions: [mongoose.Types.ObjectId(), mongoose.Types.ObjectId()]
             });
 
             await question2.save();
 
             const res = await exec();
             assert.strictEqual(res.body.length, 1);
+        });
+
+        it("Should return answer options", async () => {
+            const res = await exec();
+            expect(res.body[0].answerOptions.length).to.equal(2);
+        });
+
+        it("Should return answer options with name", async () => {
+            const res = await exec();
+            expect(res.body[0].answerOptions[0].value).to.equal(answerOption1.value);
+        });
+
+        it("Should return answer options with id", async () => {
+            const res = await exec();
+            expect(res.body[0].answerOptions[0]._id).to.equal(answerOption1.id);
+        });
+    });
+
+    describe("GET /active", () => {
+        let room;
+        let building;
+        let buildingId;
+        let roomId;
+        let token;
+
+        const exec = () => {
+            return request(server)
+              .get('/api/questions/active')
+              .set({'x-auth-token': token, 'roomId': roomId});
+        };
+
+        beforeEach(async () => {
+            building = new Building({name: '12345'});
+            await building.save();
+            buildingId = building._id;
+
+            room = new Room({
+                building: buildingId,
+                name: "12345",
+                location: "12345"
+            });
+
+            await room.save();
+            roomId = room._id;
+            token = user.generateAuthToken();
+
+            const question = new Question({
+                value: "12345",
+                room: roomId,
+                answerOptions: [mongoose.Types.ObjectId(), mongoose.Types.ObjectId()]
+            });
+
+            await question.save();
+        });
+
+        it("Should only return active questions", async () => {
+            const question2 = new Question({
+                value: "12345",
+                room: roomId,
+                isActive: false,
+                answerOptions: [mongoose.Types.ObjectId(), mongoose.Types.ObjectId()]
+            });
+
+            await question2.save();
+
+            const res = await exec();
+            expect(res.body.length).to.equal(1);
         });
     });
 
@@ -154,6 +228,7 @@ describe('/api/questions', () => {
         let roomId;
         let token;
         let answerOptions;
+        let isActive;
 
         beforeEach(async () => {
             value = '12345';
@@ -240,13 +315,6 @@ describe('/api/questions', () => {
             await expect(exec()).to.be.rejectedWith("Bad Request");
         });
 
-        it("Should create answer with value", async () => {
-            const res = await exec();
-            const answer = await Answer.findOne({value: "Too hot"});
-            expect(answer).to.be.ok;
-            expect(answer.question.toString()).to.equal(res.body._id);
-        });
-
         it('should return question object with proper room id', async () => {
             const res = await exec();
             assert.strictEqual(res.body.room, roomId.toString());
@@ -285,6 +353,70 @@ describe('/api/questions', () => {
             assert.strictEqual(res.body.length, 1);
         });
 
+        it("Should automatically set isActive to false if not set", async () => {
+            const res = await exec();
+            expect(res.body.isActive).to.be.true;
+        });
 
     });
+
+    describe("PATCH /:id change isActive of question", () => {
+
+        let questionId;
+        let token;
+        let building;
+        let buildingId;
+        let room;
+        let roomId;
+        let isActive;
+        let body;
+
+        const exec = () => {
+            return request(server)
+              .patch('/api/questions/setActive/' + questionId)
+              .set({'x-auth-token': token, 'roomId': roomId})
+              .send(body);
+        };
+
+        beforeEach(async () => {
+            building = new Building({name: '12345'});
+            await building.save();
+            buildingId = building._id;
+
+            room = new Room({
+                building: buildingId,
+                name: "12345",
+                location: "12345"
+            });
+
+            await room.save();
+            roomId = room._id;
+            token = user.generateAuthToken();
+
+            const question = new Question({
+                value: "12345",
+                room: roomId,
+                isActive: false,
+                answerOptions: [mongoose.Types.ObjectId(), mongoose.Types.ObjectId()]
+            });
+
+            await question.save();
+            questionId = question.id;
+
+            body = {};
+            body.isActive = true;
+        });
+
+        it("Should return 400 if isActive not provided", async () => {
+            body = {};
+            await expect(exec()).to.be.rejectedWith("Bad Request");
+        });
+        it("Should change isActive", async () => {
+            const res = await exec();
+            expect(res.body.isActive).to.be.true;
+        });
+
+    });
+
+
 });

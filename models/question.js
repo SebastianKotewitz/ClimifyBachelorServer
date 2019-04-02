@@ -14,7 +14,20 @@ const questionSchema = new mongoose.Schema(
             ref: 'Room',
             required: true
         },
-
+        isActive: {
+            type: Boolean,
+            required: true,
+            default: true
+        },
+        answerOptions: {
+            type: [{
+                type: mongoose.Schema.ObjectId,
+                ref: "Answer",
+                required: true
+            }],
+            required: true,
+            validate: [(val) => val.length >= 2 && Array.isArray(val), "Question should have at least two answer options"]
+        }
     });
 
 const Question = mongoose.model('Question', questionSchema);

@@ -85,30 +85,14 @@ router.get('/userFeedback/:userId', [validateId, auth], async (req, res) => {
 });
 
 
-router.get('/roomFeedback/:roomId', auth, validateId, async (req, res) => {
-
-
-    const roomId = req.params.roomId;
-    const room = await Room.findById(roomId);
-    if (!room)
-        return res.status(404).send(`Room with id ${roomId} was not found`);
-
-    let feedback;
-
-    let query = feedbackQuery(req.query, req.user._id);
-
-    if (!query) return res.status(400).send("Invalid query parameter");
-
-    query.room = roomId;
-
-    feedback = await Feedback.find(query);
-    res.send(feedback);
-
-});
-
 function feedbackQuery (query, userId) {
     let feedbackQuery = {};
     let today = new Date();
+
+    if (query.room) {
+        if (!mongoose.Types.ObjectId.isValid(query.room)) return null;
+        feedbackQuery.room = query.room;
+    }
 
     switch (query.t) {
         case "day":
@@ -153,3 +137,24 @@ function feedbackQuery (query, userId) {
 }
 
 module.exports = router;
+
+/*
+router.get('/roomFeedback/:roomId', auth, validateId, async (req, res) => {
+
+    const roomId = req.params.roomId;
+    const room = await Room.findById(roomId);
+    if (!room)
+        return res.status(404).send(`Room with id ${roomId} was not found`);
+
+    let feedback;
+
+    let query = feedbackQuery(req.query, req.user._id, room.id);
+
+    if (!query) return res.status(400).send("Invalid query parameter");
+
+    query.room = roomId;
+
+    feedback = await Feedback.find(query);
+    res.send(feedback);
+
+});*/

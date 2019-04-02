@@ -37,11 +37,6 @@ describe('Room validation', () => {
             await expect(room.validate()).to.be.rejectedWith(mongoose.ValidationError);
         });
 
-        it("should have an array of active questions", async () => {
-            room.activeQuestions = null;
-            await expect(room.validate()).to.be.rejectedWith(mongoose.ValidationError);
-        });
-
     });
 
     describe("Room from client", () => {
@@ -56,7 +51,7 @@ describe('Room validation', () => {
             return validate({buildingId, name});
         };
 
-        it("should have a buildingId", async () => {
+        it("should have a buildingId", () => {
             buildingId = null;
 
             const {error} = exec();

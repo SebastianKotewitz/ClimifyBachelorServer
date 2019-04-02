@@ -74,7 +74,11 @@ describe('/api/feedback', () => {
 
             roomId = room._id;
 
-            question = new Question({value: '123', room: room._id});
+            question = new Question({
+                value: '123',
+                room: room._id,
+                answerOptions: [mongoose.Types.ObjectId(), mongoose.Types.ObjectId()]
+            });
             await question.save();
             questionId = question._id;
 
@@ -124,7 +128,8 @@ describe('/api/feedback', () => {
             const room2 = new Room({name: "123", location: "h123", building: building2._id});
             await room2.save();
 
-            const question2 = new Question({value: '12345', room: room2._id});
+            const question2 = new Question({value: '12345', room: room2._id,
+            answerOptions: [mongoose.Types.ObjectId(),mongoose.Types.ObjectId()]});
             await question2.save();
 
             questionId = question2.id;
@@ -416,6 +421,24 @@ describe('/api/feedback', () => {
                 question: mongoose.Types.ObjectId(),
                 user: mongoose.Types.ObjectId(),
                 room: roomId
+            });
+
+            await feedback2.save();
+
+            const res = await exec();
+
+            expect(res.body.length).to.equal(1);
+
+        });
+
+        it("Should return only feedback from given room if query parsed", async () => {
+            queryStrings = "/?room=" + roomId;
+
+            const feedback2 = new Feedback({
+                answer: mongoose.Types.ObjectId(),
+                question: mongoose.Types.ObjectId(),
+                user: mongoose.Types.ObjectId(),
+                room: mongoose.Types.ObjectId()
             });
 
             await feedback2.save();

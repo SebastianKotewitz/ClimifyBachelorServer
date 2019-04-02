@@ -7,7 +7,7 @@ const {Room} = require('../models/room');
 const {Building} = require('../models/building');
 const mongoose = require('mongoose');
 const {auth} = require('../middleware/auth');
-
+const validateId = require("../middleware/validateIdParam");
 
 router.post('/', [auth], async (req, res) => {
 
@@ -40,10 +40,13 @@ router.post('/', [auth], async (req, res) => {
     for (let i = 0; i < answerOptions.length; i++) {
         let answer = new Answer({value: answerOptions[i], question: question.id});
         await answer.save();
+        question.answerOptions.push(answer.id);
     }
 
+    console.log(answerOptions);
+    console.log(question);
     await question.save();
-    res.send(_.pick(question, ["_id", "room", "value"]));
+    res.send(_.pick(question, ["_id", "room", "value", "isActive"]));
 });
 
 router.get('/', auth, async (req, res) => {
@@ -56,7 +59,23 @@ router.get('/', auth, async (req, res) => {
    const room = await Room.findById(roomId);
    if (!room) return res.status(404).send(`Room with id ${roomId} was not found`);
 
-    const questions = await Question.find({room: room._id});
+    const questions = await Question.find({room: room._id})
+      .populate('answerOptions');
+    console.log(questions[0]);
+    res.send(questions);
+});
+
+router.get("/active", auth, async (req, res) => {
+    const roomId = req.header('roomId');
+    if (!roomId) return res.status(400).send('No room id provided');
+
+    if (!mongoose.Types.ObjectId.isValid(roomId))
+        return res.status(400).send(`Room id ${roomId} was not valid`);
+
+    const room = await Room.findById(roomId);
+    if (!room) return res.status(404).send(`Room with id ${roomId} was not found`);
+
+    const questions = await Question.find({room: room._id, isActive: true});
     res.send(questions);
 });
 
@@ -69,6 +88,18 @@ router.put('/:id', async (req, res) => {
         $set: {
             value: req.body.value,
             answer: req.body.answer
+        }
+    }, {new: true});
+
+    res.send(question);
+});
+
+router.patch("/setActive/:id",  async (req, res) => {
+    if (!req.body.hasOwnProperty("isActive")) return res.status(400).send("isActive should be set in body");
+
+    const question = await Question.findByIdAndUpdate(req.params.id, {
+        $set: {
+            isActive: req.body.isActive
         }
     }, {new: true});
 

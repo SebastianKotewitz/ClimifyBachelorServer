@@ -1,5 +1,6 @@
 const {User} = require('../../models/user');
 const {Building} = require('../../models/building');
+const {Room} = require('../../models/room');
 const request = require('supertest');
 const assert = require('assert');
 const mongoose = require('mongoose');
@@ -29,6 +30,8 @@ describe('/api/buildings', () => {
     });
     afterEach( async () => {
         await User.deleteMany();
+        await Building.deleteMany();
+        await Room.deleteMany();
     });
 
     describe('POST /', () => {
@@ -47,6 +50,8 @@ describe('/api/buildings', () => {
 
         beforeEach(async () => {
             buildingName = '324';
+            user.role = 1;
+            await user.save();
             token = user.generateAuthToken();
         });
 
@@ -70,6 +75,53 @@ describe('/api/buildings', () => {
             const res = await exec();
             const newUser = await User.findById(user._id);
             assert.strictEqual(newUser.adminOnBuilding.toString(), res.body._id);
+        });
+
+        it("should return 403 if user not authorized with login role >= 1", async () => {
+            user.role = 0;
+            await user.save();
+            await expect(exec()).to.be.rejectedWith("Forbidden");
+        });
+
+    });
+
+    describe("Get /", () => {
+
+        let building;
+        let buildingId;
+        let room;
+        let token;
+        let roomId;
+
+        beforeEach(async () => {
+            building = new Building({name: "324"});
+            buildingId = building.id;
+            room = new Room({name: "hej", location: "hej", building: buildingId});
+            roomId = room.id;
+            token = user.generateAuthToken();
+
+            await building.save();
+            await room.save();
+        });
+
+        const exec = () => {
+            return request(server)
+              .get("/api/buildings")
+              .set("x-auth-token", token);
+        };
+
+        it("Should return building with room", async () => {
+            const res = await exec();
+            expect(res.body[0].rooms[0]._id).to.equal(roomId);
+        });
+
+        it("Should return array with rooms", async () => {
+            let room2 = new Room({name: "hej", location: "hej", building: buildingId});
+            let room3 = new Room({name: "hej", location: "hej", building: mongoose.Types.ObjectId()});
+            await room2.save();
+            await room3.save();
+            const res = await exec();
+            expect(res.body[0].rooms.length).to.equal(2);
         });
 
     });

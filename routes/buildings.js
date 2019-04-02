@@ -1,15 +1,16 @@
 const express = require('express');
 const mongoose = require('mongoose');
 const { Building, validate } = require('../models/building');
+const { Room } = require('../models/room');
 const { User } = require('../models/user');
 const _ = require('lodash');
 const router = express.Router();
 const Fawn = require('fawn');
-const {auth} = require('../middleware/auth');
+const {auth, authorized} = require('../middleware/auth');
 Fawn.init(mongoose);
 
 
-router.post('/', auth, async (req, res) => {
+router.post('/', [auth, authorized], async (req, res) => {
 
     const {error} = validate(req.body);
     console.log(req.body);
@@ -32,8 +33,13 @@ router.post('/', auth, async (req, res) => {
 });
 
 router.get('/', async (req, res) => {
-    const buildings = await Building.find();
-    res.send(buildings);
+    let buildings = await Building.find();
+    let newBuildings = [];
+    for (let i = 0; i < buildings.length; i++) {
+        newBuildings.push(_.pick(buildings[i], ["name", "_id"]));
+        newBuildings[i].rooms = await Room.find({building: buildings[i].id});
+    }
+    res.send(newBuildings);
 });
 
 module.exports = router;

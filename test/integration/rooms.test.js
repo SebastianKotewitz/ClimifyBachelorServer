@@ -8,6 +8,9 @@ let server;
 const config = require('config');
 const mongoose = require('mongoose');
 const logger = require('../../startup/logger');
+const chai = require("chai");
+const chaiAsPromised = require("chai-as-promised");
+chai.use(chaiAsPromised);
 const expect = require('chai').expect;
 
 
@@ -24,7 +27,7 @@ describe('/api/rooms', () => {
     });
 
     beforeEach(async () => {
-        user = new User();
+        user = new User({role: 1});
         await user.save();
     });
     afterEach(async () => {
@@ -40,10 +43,12 @@ describe('/api/rooms', () => {
         let location;
         let name;
         let body;
+        let token;
 
         const exec = () => {
             return request(server)
                 .post('/api/rooms')
+                .set("x-auth-token", token)
                 .send({location, buildingId: building._id, name});
         };
 
@@ -53,7 +58,21 @@ describe('/api/rooms', () => {
             location = '222';
 
             await building.save();
+
+            token = user.generateAuthToken();
         });
+
+        it("should return 400 if no token provided", async () => {
+            token = null;
+            await expect(exec()).to.be.rejectedWith("Bad Request");
+        });
+
+        it("Should return 403 if user not authorized with login role >= 1", async () => {
+            user.role = 0;
+            await user.save();
+            await expect(exec()).to.be.rejectedWith("Forbidden");
+        });
+
         it('should return room with proper building id', async () => {
             try {
                 const res = await exec();
@@ -88,25 +107,31 @@ describe('/api/rooms', () => {
             throw new Error('should have thrown error');
         });
 
+        it("Should return 403 if user not admin on building", async () => {
+
+
+        });
+
     });
 
 
     describe('GET /', () => {
         let building;
         let room;
+        let token;
 
         beforeEach(async () => {
             building = new Building({name: '324'});
 
             room = new Room({name: "222", location: "123", building: building._id});
-
+            token = user.generateAuthToken();
             await building.save();
             await room.save();
         });
         const exec = () => {
             return request(server)
                 .get('/api/rooms')
-                .set('userId', user._id);
+                .set('x-auth-token', token);
         };
 
 
@@ -117,12 +142,11 @@ describe('/api/rooms', () => {
             try {
                 const res = await exec();
                 expect(res.body.length).to.equal(2);
-            } catch (e) {
+            } catch (e) {set
                 logger.error(e);
                 throw e;
             }
         });
-
 
     });
 });

@@ -16,18 +16,9 @@ const roomSchema = new mongoose.Schema({
     },
     building: {
         ref: 'Building',
-        type: mongoose.Schema.Types.ObjectId,
+        type: mongoose.Schema.ObjectId,
         required: true
     },
-    activeQuestions: {
-        type: [{
-            type: mongoose.Schema.Types.ObjectId,
-            required: true,
-            ref: "Question"
-        }],
-        required: true
-    },
-
 });
 
 const Room = mongoose.model('Room', roomSchema);

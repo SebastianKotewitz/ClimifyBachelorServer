@@ -11,8 +11,7 @@ const buildingSchema = new mongoose.Schema({
     },
     feedback: {
         type: [mongoose.Schema.ObjectId]
-    }
-
+    },
 });
 
 const Building = mongoose.model('Building', buildingSchema);

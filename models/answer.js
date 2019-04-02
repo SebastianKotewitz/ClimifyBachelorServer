@@ -8,11 +8,11 @@ const answerSchema = new mongoose.Schema({
     maxLength: 1024,
     required: true
   },
-  question: {
+  /*question: {
     type: mongoose.Types.ObjectId,
     required: true,
     ref: "Question"
-  }
+  }*/
 });
 
 const Answer = mongoose.model('Answer', answerSchema);
@@ -20,7 +20,7 @@ const Answer = mongoose.model('Answer', answerSchema);
 function validateAnswer(answer) {
 
   const schema = {
-    questionId: Joi.objectId().required(),
+    // questionId: Joi.objectId().required(),
     value: Joi.string().min(1).max(255).required(),
   };
 
