@@ -39,7 +39,7 @@ router.post('/', async (req, res) => {
 });
 
 router.get('/', async (req, res) => {
-    const users = await User.find(null, "_id email role");
+    const users = await User.find(null, "_id email role adminOnBuilding");
 
     res.send(users);
 
