@@ -237,7 +237,7 @@ describe('/api/feedback', () => {
             expect(res.body.length).to.equal(1);
         });
 
-        it("should still return all feedback when random user query string param parsed", async () => {
+        it("should still return all feedback when user query with all string param parsed", async () => {
             queryStrings = "/?user=all";
 
             let feedback2 = new Feedback({
@@ -357,6 +357,73 @@ describe('/api/feedback', () => {
 
             const res = await exec();
             expect(res.body.length).to.equal(1);
+        });
+
+    });
+
+    describe(" GET /", () => {
+        let roomId;
+        let feedback;
+        let building;
+        let baseUrl;
+        let queryStrings;
+        let jsonToken;
+
+        const exec = () => {
+            return request(server)
+              .get(baseUrl + queryStrings)
+              .set('x-auth-token', jsonToken);
+        };
+
+        beforeEach(async () => {
+            baseUrl = '/api/feedback/';
+            queryStrings = "/";
+            building = new Building({name: '324'});
+            await building.save();
+            jsonToken = user.generateAuthToken();
+            const room = new Room({name: '222', location: '123', building: building._id});
+            await room.save();
+
+            roomId = room._id;
+
+            const question = new Question({value: '123', room: roomId});
+            const answer = new Answer({value: "123", question: question._id});
+
+            feedback = new Feedback({
+                answer: answer._id,
+                question: question._id,
+                user: user._id, room: roomId
+            });
+
+            await feedback.save();
+        });
+
+        it("Should return array with one feedback", async () => {
+            const res = await exec();
+            expect(res.body.length).to.equal(1);
+        });
+
+        it("Should return 400 if bad query parsed", async () => {
+            queryStrings = "?user=hej";
+            await expect(exec()).to.be.rejectedWith("Bad Request");
+        });
+
+        it("Should only return one length array when user query parsed", async () => {
+            queryStrings = "/?user=me";
+
+            const feedback2 = new Feedback({
+                answer: mongoose.Types.ObjectId(),
+                question: mongoose.Types.ObjectId(),
+                user: mongoose.Types.ObjectId(),
+                room: roomId
+            });
+
+            await feedback2.save();
+
+            const res = await exec();
+
+            expect(res.body.length).to.equal(1);
+
         });
 
     });

@@ -51,26 +51,36 @@ router.post('/', auth, async (req, res) => {
 
 });
 
-router.get('/', async (req, res) => {
-    const feedback = await Feedback.find();
+router.get('/', auth, async (req, res) => {
+    const query = feedbackQuery(req.query, req.user._id);
+    if (!query) return res.status(400).send("Invalid query parameter");
+    console.log(query);
+    const feedback = await Feedback.find(query);
     res.send(feedback);
 });
 
-router.get('/buildingFeedback/:id', validateId, async (req, res) => {
+router.get('/buildingFeedback/:id', [validateId, auth], async (req, res) => {
 
     const building = await Building.findById(req.params.id);
     if (!building) return res.status(404).send(`Building with id ${req.params.id} was not found`);
 
-    const feedback = await Feedback.find().populate('user', '-__v -_id');
+    const query = feedbackQuery(req.query, req.user._id);
+    if (!query) return res.status(400).send("Invalid query parameter");
+    const feedback = await Feedback.find(query).populate('user', '-__v -_id');
     res.send(feedback);
 });
 
-router.get('/userFeedback/:userId', validateId, async (req, res) => {
+router.get('/userFeedback/:userId', [validateId, auth], async (req, res) => {
     const userId = req.params.userId;
+
+    const query = feedbackQuery(req.query, req.user._id);
+    if (!query) return res.status(400).send("Invalid query parameter");
     if (await User.countDocuments({_id: userId}) <= 0)
         return res.status(404).send('User with id ' + userId + ' was not found.');
 
-    const feedback = await Feedback.find({user: userId}).populate('user');
+
+    query.user = userId;
+    const feedback = await Feedback.find(query).populate('user');
     res.send(feedback);
 });
 
@@ -85,9 +95,10 @@ router.get('/roomFeedback/:roomId', auth, validateId, async (req, res) => {
 
     let feedback;
 
-
-
     let query = feedbackQuery(req.query, req.user._id);
+
+    if (!query) return res.status(400).send("Invalid query parameter");
+
     query.room = roomId;
 
     feedback = await Feedback.find(query);
@@ -120,12 +131,22 @@ function feedbackQuery (query, userId) {
                 $gt: new Date(today.getFullYear() - 1, today.getMonth(), today.getDate(), today.getHours(), today.getMinutes(), today.getSeconds())
             };
             break;
+        case undefined:
+            break;
+        default:
+            return null;
     }
 
     switch (query.user) {
         case "me":
             feedbackQuery.user = userId;
             break;
+        case "all":
+            break;
+        case undefined:
+            break;
+        default:
+            return null;
     }
 
     return feedbackQuery;
