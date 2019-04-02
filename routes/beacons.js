@@ -35,7 +35,7 @@ router.post('/', [auth, authorized], async (req, res) => {
     res.send(_.pick(beacon, ["_id", "room", "location", "name", "uuid"]));
 });
 
-router.get('/', async (req, res) => {
+router.get('/', auth, async (req, res) => {
     const beacons = await Beacon.find();
     res.send(beacons);
 });
