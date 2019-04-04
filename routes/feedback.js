@@ -139,7 +139,7 @@ function feedbackQuery (query, userId) {
             break;
         case "day":
             feedbackQuery.createdAt = {
-                $gt: new Date(today.getFullYear(), today.getMonth(), today.getDate(), today.getHours()-24, today.getMinutes())
+                $gt: new Date(today.getFullYear(), today.getMonth(), today.getDate(), today.getHours()-23, today.getMinutes())
             };
             break;
         case "week":
