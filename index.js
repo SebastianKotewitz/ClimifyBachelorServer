@@ -53,7 +53,7 @@ if (process.env.NODE_ENV !== 'test')
 app.use(express.json());
 
 app.use(endMiddleware);
-app.use('/api/feedback', feedback);
+app.use('/api/feedback/', feedback);
 app.use('/api/users', users);
 app.use('/api/rooms', rooms);
 app.use('/api/beacons', beacons);

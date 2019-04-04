@@ -15,8 +15,6 @@ router.post('/', [auth, authorized], async (req, res) => {
     if (await Building.countDocuments({_id: buildingId}) <= 0)
         return res.status(404).send('Building with id ' + buildingId + ' was not found.');
 
-
-
     let room = new Room({
         name,
         location,

@@ -158,7 +158,7 @@ describe('/api/feedback', () => {
         });
     });
 
-    describe(' GET /roomFeedback/:id', () => {
+    /*describe(' GET /roomFeedback/:id', () => {
 
         let roomId;
         let feedback;
@@ -364,7 +364,7 @@ describe('/api/feedback', () => {
             expect(res.body.length).to.equal(1);
         });
 
-    });
+    });*/
 
     describe(" GET /", () => {
         let roomId;
@@ -381,7 +381,7 @@ describe('/api/feedback', () => {
         };
 
         beforeEach(async () => {
-            baseUrl = '/api/feedback/';
+            baseUrl = '/api/feedback';
             queryStrings = "/";
             building = new Building({name: '324'});
             await building.save();
@@ -401,6 +401,7 @@ describe('/api/feedback', () => {
             });
 
             await feedback.save();
+            await answer.save();
         });
 
         it("Should return array with one feedback", async () => {
@@ -450,4 +451,88 @@ describe('/api/feedback', () => {
         });
 
     });
+
+    describe("GET /answeredQuestions/",  () => {
+
+        let roomId;
+        let feedback;
+        let building;
+        let baseUrl;
+        let queryStrings;
+        let jsonToken;
+        let question;
+        let answer;
+
+        const exec = () => {
+            return request(server)
+              .get(baseUrl + queryStrings)
+              .set('x-auth-token', jsonToken);
+        };
+
+        beforeEach(async () => {
+            baseUrl = '/api/feedback/answeredQuestions';
+            queryStrings = "/";
+            building = new Building({name: '324'});
+            await building.save();
+            jsonToken = user.generateAuthToken();
+            const room = new Room({name: '222', location: '123', building: building._id});
+            await room.save();
+
+            roomId = room._id;
+
+            question = new Question({value: '123', room: roomId, answerOptions: [mongoose.Types.ObjectId(), mongoose.Types.ObjectId()]});
+            answer = new Answer({value: "123", question: question._id});
+
+            feedback = new Feedback({
+                answer: answer._id,
+                question: question._id,
+                user: user._id, room: roomId
+            });
+
+            await question.save();
+            await feedback.save();
+            await answer.save();
+        });
+
+        it("Should return all unique questions with feedback", async () => {
+            feedback = new Feedback({
+                answer: answer._id,
+                question: question._id,
+                user: user._id, room: roomId
+            });
+            await feedback.save();
+
+            const res = await exec();
+            expect(res.body.length).to.equal(1);
+        });
+
+        it("question in array should have value", async () => {
+            const res = await exec();
+            expect(res.body[0].question.hasOwnProperty("value")).to.be.ok;
+        });
+
+        it("Should have an answerCount", async () => {
+            const res = await exec();
+            expect(res.body[0].hasOwnProperty("answerCount")).to.be.ok;
+        });
+
+        it("Should be possible to send queries and limit the result", async () => {
+
+            let question2 = new Question({value: '123', room: roomId, answerOptions: [mongoose.Types.ObjectId(), mongoose.Types.ObjectId()]});
+            await question2.save();
+
+            feedback = new Feedback({
+                answer: answer._id,
+                question: question2._id,
+                user: mongoose.Types.ObjectId(), room: roomId
+            });
+            await feedback.save();
+            queryStrings = "/?user=me";
+            const res = await exec();
+            expect(res.body.length).to.equal(1);
+
+        });
+
+    });
+
 });

@@ -55,7 +55,8 @@ router.get('/', auth, async (req, res) => {
     const query = feedbackQuery(req.query, req.user._id);
     if (!query) return res.status(400).send("Invalid query parameter");
     console.log(query);
-    const feedback = await Feedback.find(query);
+    const feedback = await Feedback.find(query).populate("answer");
+
     res.send(feedback);
 });
 
@@ -84,6 +85,31 @@ router.get('/userFeedback/:userId', [validateId, auth], async (req, res) => {
     res.send(feedback);
 });
 
+router.get("/answeredQuestions", auth, async (req, res) => {
+
+    let answeredQuestions = [];
+
+    const query = feedbackQuery(req.query, req.user._id);
+    if (!query) return res.status(400).send("Invalid query parameter");
+    const feedback = await Feedback.find(query).populate("question");
+
+    for (let i = 0; i < feedback.length; i++) {
+        const index = answeredQuestions.findIndex((answeredQuestion) => {
+            return answeredQuestion.question._id === feedback[i].question._id;
+        });
+        if (index >= 0) {
+            answeredQuestions[index].answerCount++;
+        } else {
+            answeredQuestions.push({
+                question: _.pick(feedback[i].question, ["value", "_id"]),
+                answerCount: await Feedback.countDocuments({question: feedback[i].question})
+            })
+        }
+    }
+
+    res.send(Array.from(answeredQuestions));
+});
+
 
 function feedbackQuery (query, userId) {
     let feedbackQuery = {};
@@ -97,22 +123,22 @@ function feedbackQuery (query, userId) {
     switch (query.t) {
         case "day":
             feedbackQuery.createdAt = {
-                $gt: new Date(today.getFullYear(), today.getMonth(), today.getDate(), today.getHours()-24, today.getMinutes(), today.getSeconds())
+                $gt: new Date(today.getFullYear(), today.getMonth(), today.getDate(), today.getHours()-24, today.getMinutes())
             };
             break;
         case "week":
             feedbackQuery.createdAt = {
-                $gt: new Date(today.getFullYear(), today.getMonth(), today.getDate()-7, today.getHours(), today.getMinutes(), today.getSeconds())
+                $gt: new Date(today.getFullYear(), today.getMonth(), today.getDate()-7, today.getHours())
             };
             break;
         case "month":
             feedbackQuery.createdAt = {
-                $gt: new Date(today.getFullYear(), today.getMonth() - 1, today.getDate(), today.getHours(), today.getMinutes(), today.getSeconds())
+                $gt: new Date(today.getFullYear(), today.getMonth() - 1, today.getDate())
             };
             break;
         case "year":
             feedbackQuery.createdAt = {
-                $gt: new Date(today.getFullYear() - 1, today.getMonth(), today.getDate(), today.getHours(), today.getMinutes(), today.getSeconds())
+                $gt: new Date(today.getFullYear() - 1, today.getMonth())
             };
             break;
         case undefined:
@@ -137,24 +163,3 @@ function feedbackQuery (query, userId) {
 }
 
 module.exports = router;
-
-/*
-router.get('/roomFeedback/:roomId', auth, validateId, async (req, res) => {
-
-    const roomId = req.params.roomId;
-    const room = await Room.findById(roomId);
-    if (!room)
-        return res.status(404).send(`Room with id ${roomId} was not found`);
-
-    let feedback;
-
-    let query = feedbackQuery(req.query, req.user._id, room.id);
-
-    if (!query) return res.status(400).send("Invalid query parameter");
-
-    query.room = roomId;
-
-    feedback = await Feedback.find(query);
-    res.send(feedback);
-
-});*/
