@@ -110,8 +110,15 @@ router.get("/answeredQuestions", auth, async (req, res) => {
     res.send(Array.from(answeredQuestions));
 });
 
-router.get("/questionStatistics/:questionId", auth, async (req, res) => {
-    res.send([{answer: "hej"}]);
+router.get("/questionStatistics/:questionId", [validateId, auth], async (req, res) => {
+    const questionId = req.params.id;
+
+    const query = feedbackQuery(req.query, req.user._id);
+    if (!query) return res.status(400).send("Invalid query parameter");
+
+    query.question = questionId;
+    const feedback = Feedback.find(query).populate("answer");
+    res.send([{answer: "hej", timesAnswered: 1}]);
 });
 
 
@@ -125,6 +132,11 @@ function feedbackQuery (query, userId) {
     }
 
     switch (query.t) {
+        case "hour":
+            feedbackQuery.createdAt = {
+                $gt: new Date(today.getFullYear(), today.getMonth(), today.getDate(), today.getHours(), today.getMinutes()-60, today.getSeconds())
+            };
+            break;
         case "day":
             feedbackQuery.createdAt = {
                 $gt: new Date(today.getFullYear(), today.getMonth(), today.getDate(), today.getHours()-24, today.getMinutes())

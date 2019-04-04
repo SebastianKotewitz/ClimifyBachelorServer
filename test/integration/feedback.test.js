@@ -470,12 +470,29 @@ describe('/api/feedback', () => {
                 expect(res.body[0].hasOwnProperty("answer")).to.be.ok;
             });
 
-            it("Should return array with count property", async () => {
+            it("Should return array with timesAnswered property", async () => {
                 const res = await exec();
                 expect(res.body[0].hasOwnProperty("timesAnswered")).to.be.ok;
             });
 
-            it("Should return array ")
+            it("Should return valid timesAnswered for question", async () => {
+                feedback = new Feedback({
+                    answer: answer._id,
+                    question: question._id,
+                    user: user._id, room: roomId
+                });
+                await feedback.save();
+
+                feedback = new Feedback({
+                    answer: answer._id,
+                    question: question._id,
+                    user: user._id, room: roomId
+                });
+                await feedback.save();
+
+                const res = await exec();
+                expect(res.body[0].timesAnswered).to.equal(3);
+            });
         });
 
         describe("GET /answeredQuestions/",  () => {
