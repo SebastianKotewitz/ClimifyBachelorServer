@@ -98,16 +98,20 @@ router.get("/answeredQuestions", auth, async (req, res) => {
             return answeredQuestion.question._id === feedback[i].question._id;
         });
         if (index >= 0) {
-            answeredQuestions[index].answerCount++;
+            answeredQuestions[index].timesAnswered++;
         } else {
             answeredQuestions.push({
                 question: _.pick(feedback[i].question, ["value", "_id"]),
-                answerCount: await Feedback.countDocuments({question: feedback[i].question})
+                timesAnswered: 1
             })
+
         }
     }
-
     res.send(Array.from(answeredQuestions));
+});
+
+router.get("/questionStatistics/:questionId", auth, async (req, res) => {
+    res.send([{answer: "hej"}]);
 });
 
 

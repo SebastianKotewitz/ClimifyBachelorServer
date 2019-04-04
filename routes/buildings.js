@@ -32,7 +32,7 @@ router.post('/', [auth, authorized], async (req, res) => {
      res.send(building);
 });
 
-router.get('/', async (req, res) => {
+router.get('/', auth, async (req, res) => {
     let buildings = await Building.find();
     let newBuildings = [];
     for (let i = 0; i < buildings.length; i++) {
