@@ -493,6 +493,21 @@ describe('/api/feedback', () => {
                 const res = await exec();
                 expect(res.body[0].timesAnswered).to.equal(3);
             });
+
+            it("Should also regulate timesAnswered if user filter (query) parsed in url", async () => {
+                queryStrings = "/?user=me";
+
+                feedback = new Feedback({
+                    answer: answer._id,
+                    question: question._id,
+                    user: mongoose.Types.ObjectId(), room: roomId
+                });
+                await feedback.save();
+
+                const res = await exec();
+                expect(res.body[0].timesAnswered).to.equal(1);
+
+            });
         });
 
         describe("GET /answeredQuestions/",  () => {

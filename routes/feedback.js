@@ -95,7 +95,7 @@ router.get("/answeredQuestions", auth, async (req, res) => {
 
     for (let i = 0; i < feedback.length; i++) {
         const index = answeredQuestions.findIndex((answeredQuestion) => {
-            return answeredQuestion.question._id === feedback[i].question._id;
+            return answeredQuestion.question && answeredQuestion.question._id === feedback[i].question._id;
         });
         if (index >= 0) {
             answeredQuestions[index].timesAnswered++;
@@ -111,14 +111,30 @@ router.get("/answeredQuestions", auth, async (req, res) => {
 });
 
 router.get("/questionStatistics/:questionId", [validateId, auth], async (req, res) => {
-    const questionId = req.params.id;
+    let feedbackStats = [];
+    const questionId = req.params.questionId;
 
     const query = feedbackQuery(req.query, req.user._id);
     if (!query) return res.status(400).send("Invalid query parameter");
 
     query.question = questionId;
-    const feedback = Feedback.find(query).populate("answer");
-    res.send([{answer: "hej", timesAnswered: 1}]);
+    const feedback = await Feedback.find(query).populate("answer");
+
+    for (let i = 0; i < feedback.length; i++) {
+        const index = feedbackStats.findIndex(item => {
+            return item.answer && item.answer._id === feedback[i].answer._id
+        });
+        if (index < 0) {
+            feedbackStats.push({
+                answer: _.pick(feedback[i].answer, ["_id", "value"]),
+                timesAnswered: 1
+            })
+        } else {
+            feedbackStats[index].timesAnswered++;
+        }
+    }
+
+    res.send(feedbackStats);
 });
 
 
@@ -139,7 +155,7 @@ function feedbackQuery (query, userId) {
             break;
         case "day":
             feedbackQuery.createdAt = {
-                $gt: new Date(today.getFullYear(), today.getMonth(), today.getDate(), today.getHours()-23, today.getMinutes())
+                $gt: new Date(today.getFullYear(), today.getMonth(), today.getDate(), today.getHours()-24, today.getMinutes())
             };
             break;
         case "week":
