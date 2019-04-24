@@ -17,10 +17,12 @@ describe('Validation of url id parameter', () => {
         res.send = sinon.fake();
 
         validate(req, res, {});
+        console.log(res.send);
 
         assert(res.status.calledWith(400));
         assert(res.send.calledOnce);
-        assert(res.send.calledWith('Id not provided'));
+        assert(res.send.calledWith('Hej'));
+
     });
 
     it('should return 400 if invalid id', () => {

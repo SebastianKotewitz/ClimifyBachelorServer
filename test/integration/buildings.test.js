@@ -85,6 +85,39 @@ describe('/api/buildings', () => {
 
     });
 
+    describe("GET /:id", () => {
+        let building;
+        let buildingId;
+        let room;
+        let token;
+        let roomId;
+
+        beforeEach(async () => {
+            building = new Building({name: "324"});
+            buildingId = building.id;
+            room = new Room({name: "hej", location: "hej", building: buildingId});
+            roomId = room.id;
+            token = user.generateAuthToken();
+
+            await building.save();
+            await room.save();
+        });
+
+        const exec = () => {
+            return request(server)
+              .get("/api/buildings/" + buildingId)
+              .set("x-auth-token", token);
+        };
+
+        it("Should return only one building", async () => {
+            let building = new Building({name: "322"});
+            await building.save();
+            const res = await exec();
+            expect(res.body.name).to.equal("324");
+        })
+
+    });
+
     describe("Get /", () => {
 
         let building;

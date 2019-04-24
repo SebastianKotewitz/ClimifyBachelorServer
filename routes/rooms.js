@@ -30,4 +30,10 @@ router.get('/', auth, async (req, res) => {
     res.send(rooms);
 });
 
+router.get("/fromBuilding/:id", auth, async (req, res) => {
+    console.log(req.params.id);
+    const rooms = await Room.find({building: req.params.id});
+    res.send(rooms);
+});
+
 module.exports = router;

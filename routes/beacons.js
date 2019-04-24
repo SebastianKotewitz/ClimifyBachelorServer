@@ -35,6 +35,11 @@ router.post('/', [auth, authorized], async (req, res) => {
     res.send(_.pick(beacon, ["_id", "room", "location", "name", "uuid"]));
 });
 
+router.delete("/:id", async (req, res) => {
+    const beacon = await Beacon.deleteOne({_id: req.params.id})
+    res.send(beacon);
+});
+
 router.get('/', auth, async (req, res) => {
     const beacons = await Beacon.find();
     res.send(beacons);

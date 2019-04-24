@@ -8,6 +8,7 @@ const router = express.Router();
 const Fawn = require('fawn');
 const {auth, authorized} = require('../middleware/auth');
 Fawn.init(mongoose);
+const validId = require("../middleware/validateIdParam");
 
 
 router.post('/', [auth, authorized], async (req, res) => {
@@ -20,7 +21,7 @@ router.post('/', [auth, authorized], async (req, res) => {
     const user = req.user;
 
     const admin = await User.findById(user._id);
-    if (!admin) return res.status(401).send('User with id ' + userId + ' is not authorized in system');
+    if (!admin) return res.status(401).send(`User with id ${userId} is not authorized in system`);
 
     const building = new Building({
         name
@@ -30,6 +31,11 @@ router.post('/', [auth, authorized], async (req, res) => {
      await admin.save();
      await building.save();
      res.send(building);
+});
+
+router.get("/:id", [auth, validId], async (req, res) => {
+    const building = await Building.findById(req.params.id);
+    res.send(building);
 });
 
 router.get('/', auth, async (req, res) => {

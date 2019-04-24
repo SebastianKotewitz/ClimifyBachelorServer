@@ -115,6 +115,35 @@ describe('/api/rooms', () => {
     });
 
 
+    describe("GET rooms in building /fromBuilding/:id", () => {
+        let building;
+        let buildingId;
+        let room;
+        let token;
+
+        beforeEach(async () => {
+            building = new Building({name: '324'});
+            buildingId = building.id;
+            room = new Room({name: "222", location: "123", building: building._id});
+            let room2 = new Room({name: "221", location: "456", building: mongoose.Types.ObjectId()});
+            token = user.generateAuthToken();
+            await building.save();
+            await room.save();
+            await room2.save();
+        });
+
+        const exec = () => {
+            return request(server)
+              .get('/api/rooms/fromBuilding/' + buildingId)
+              .set('x-auth-token', token);
+        };
+
+        it("Should only return 1 room", async () => {
+            const res = await exec();
+            expect(res.body.length).to.equal(1);
+        });
+    });
+
     describe('GET /', () => {
         let building;
         let room;
@@ -142,7 +171,7 @@ describe('/api/rooms', () => {
             try {
                 const res = await exec();
                 expect(res.body.length).to.equal(2);
-            } catch (e) {set
+            } catch (e) {
                 logger.error(e);
                 throw e;
             }

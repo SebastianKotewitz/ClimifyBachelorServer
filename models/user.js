@@ -30,10 +30,11 @@ const userSchema = new mongoose.Schema({
     }
 });
 
-
 userSchema.methods.generateAuthToken = function() {
     return jwt.sign({_id: this._id, role: this.role}, process.env.jwtPrivateKey);
 };
+
+const UserRole = Object.freeze({"unauthorized": 0, "authorized": 1, "admin": 2,});
 
 const User = mongoose.model('User', userSchema);
 
@@ -55,3 +56,4 @@ function validateAuthorizedUser(user) {
 module.exports.User = User;
 module.exports.validate = validate;
 module.exports.validateAuthorized = validateAuthorizedUser;
+module.exports.UserRole = UserRole;

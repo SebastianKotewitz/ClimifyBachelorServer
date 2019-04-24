@@ -29,6 +29,7 @@ router.post('/', [auth], async (req, res) => {
     const building = await Building.findById(room.building);
     if (!building) return res.status(404).send('Building with id ' + room.building + ' was not found.');
 
+    console.log("yo" + user.adminOnBuilding);
     if (!user.adminOnBuilding || user.adminOnBuilding.toString() !== building._id.toString())
         return res.status(403).send('Admin rights on the building are required to post new questions');
 
@@ -94,7 +95,7 @@ router.put('/:id', async (req, res) => {
     res.send(question);
 });
 
-router.patch("/setActive/:id",  async (req, res) => {
+router.patch("/setActive/:id",  auth,async (req, res) => {
     if (!req.body.hasOwnProperty("isActive")) return res.status(400).send("isActive should be set in body");
 
     const question = await Question.findByIdAndUpdate(req.params.id, {

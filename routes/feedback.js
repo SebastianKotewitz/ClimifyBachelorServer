@@ -60,7 +60,7 @@ router.get('/', auth, async (req, res) => {
     res.send(feedback);
 });
 
-router.get('/buildingFeedback/:id', [validateId, auth], async (req, res) => {
+/*router.get('/buildingFeedback/:id', [validateId, auth], async (req, res) => {
 
     const building = await Building.findById(req.params.id);
     if (!building) return res.status(404).send(`Building with id ${req.params.id} was not found`);
@@ -83,7 +83,7 @@ router.get('/userFeedback/:userId', [validateId, auth], async (req, res) => {
     query.user = userId;
     const feedback = await Feedback.find(query).populate('user');
     res.send(feedback);
-});
+});*/
 
 router.get("/answeredQuestions", auth, async (req, res) => {
 
