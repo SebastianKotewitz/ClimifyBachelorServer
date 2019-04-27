@@ -34,6 +34,7 @@ describe("User", () => {
             const res = await user.validate();
             expect(res).to.be.undefined;
         });
+
     });
 
     describe("Basic user posted from client", () => {

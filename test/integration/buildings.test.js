@@ -74,7 +74,9 @@ describe('/api/buildings', () => {
             assert.strictEqual(user.adminOnBuilding, undefined);
             const res = await exec();
             const newUser = await User.findById(user._id);
-            assert.strictEqual(newUser.adminOnBuilding.toString(), res.body._id);
+
+            expect(newUser.adminOnBuildings.find(elem => elem.toString() === res.body._id)).to.be.ok;
+            // assert.strictEqual(newUser.adminOnBuilding.toString(), res.body._id);
         });
 
         it("should return 403 if user not authorized with login role >= 1", async () => {
@@ -82,6 +84,34 @@ describe('/api/buildings', () => {
             await user.save();
             await expect(exec()).to.be.rejectedWith("Forbidden");
         });
+
+    });
+
+    describe("DELETE /:id", () => {
+        let building;
+        let buildingId;
+        let room;
+        let token;
+
+        beforeEach(async () => {
+            building = new Building({name: "324"});
+            buildingId = building.id;
+            token = user.generateAuthToken();
+
+            await building.save();
+            await room.save();
+        });
+
+        const exec = () => {
+            return request(server)
+              .delete("/api/buildings/" + buildingId)
+              .set("x-auth-token", token);
+        };
+
+        it("Should return empty array of buildings after building was deleted", async () => {
+
+        });
+
 
     });
 

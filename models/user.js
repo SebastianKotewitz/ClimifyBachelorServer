@@ -18,8 +18,8 @@ const userSchema = new mongoose.Schema({
         type: Boolean,
         default: false
     },
-    adminOnBuilding: {
-        type: mongoose.Schema.ObjectId
+    adminOnBuildings: {
+        type: [mongoose.Schema.ObjectId]
     },
     role: {
         type: Number,

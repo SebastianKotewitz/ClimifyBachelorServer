@@ -9,6 +9,7 @@ const beaconSchema = new mongoose.Schema({
        maxLength: 255,
        required: true
     },
+
     location: {
         type: String,
         minLength: 1,

@@ -13,6 +13,7 @@ const questions = require('./routes/questions');
 const beacons = require('./routes/beacons');
 const buildings = require('./routes/buildings');
 const auth = require('./routes/auth');
+const signalMaps = require('./routes/signalMaps');
 const error = require('./middleware/error');
 // const { createLogger, format, transports } = require('winston');
 const morgan = require('morgan');
@@ -61,6 +62,7 @@ app.use('/api/beacons', beacons);
 app.use('/api/questions', questions);
 app.use('/api/buildings', buildings);
 app.use('/api/auth', auth);
+app.use('/api/signalMaps', signalMaps);
 app.use(error);
 
 module.exports = app;

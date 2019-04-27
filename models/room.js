@@ -8,12 +8,12 @@ const roomSchema = new mongoose.Schema({
         minLength: 1,
         maxLength: 255
     },
-    location: {
+    /*location: {
         type: String,
         required: true,
         minLength: 1,
         maxLength: 1024
-    },
+    },*/
     building: {
         ref: 'Building',
         type: mongoose.Schema.ObjectId,
@@ -26,7 +26,7 @@ const Room = mongoose.model('Room', roomSchema);
 function validateRoom(room) {
     const schema = {
         name: Joi.string().min(1).max(255).required(),
-        location: Joi.string().min(1).max(1024),
+        // location: Joi.string().min(1).max(1024),
         buildingId: Joi.objectId().required()
     };
     return Joi.validate(room, schema);

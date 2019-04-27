@@ -29,8 +29,8 @@ router.post('/', [auth], async (req, res) => {
     const building = await Building.findById(room.building);
     if (!building) return res.status(404).send('Building with id ' + room.building + ' was not found.');
 
-    console.log("yo" + user.adminOnBuilding);
-    if (!user.adminOnBuilding || user.adminOnBuilding.toString() !== building._id.toString())
+
+    if (!user.adminOnBuildings || !user.adminOnBuildings.find(elem => elem.toString() === building._id.toString()))
         return res.status(403).send('Admin rights on the building are required to post new questions');
 
     const question = new Question({

@@ -36,7 +36,8 @@ router.post('/', [auth, authorized], async (req, res) => {
 });
 
 router.delete("/:id", async (req, res) => {
-    const beacon = await Beacon.deleteOne({_id: req.params.id})
+
+    const beacon = await Beacon.deleteOne({_id: req.params.id});
     res.send(beacon);
 });
 

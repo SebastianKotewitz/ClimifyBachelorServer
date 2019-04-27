@@ -1,8 +1,8 @@
 const express = require('express');
 const mongoose = require('mongoose');
-const { Building, validate } = require('../models/building');
-const { Room } = require('../models/room');
-const { User } = require('../models/user');
+const {Building, validate} = require('../models/building');
+const {Room} = require('../models/room');
+const {User} = require('../models/user');
 const _ = require('lodash');
 const router = express.Router();
 const Fawn = require('fawn');
@@ -27,10 +27,10 @@ router.post('/', [auth, authorized], async (req, res) => {
         name
     });
 
-     admin.adminOnBuilding = building._id;
-     await admin.save();
-     await building.save();
-     res.send(building);
+    admin.adminOnBuildings.push(building._id);
+    await admin.save();
+    await building.save();
+    res.send(building);
 });
 
 router.get("/:id", [auth, validId], async (req, res) => {
