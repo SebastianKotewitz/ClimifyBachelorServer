@@ -9,7 +9,7 @@ const Fawn = require('fawn');
 const {auth, authorized} = require('../middleware/auth');
 Fawn.init(mongoose);
 const validId = require("../middleware/validateIdParam");
-
+const buildingController = require("../controllers/buildingController")
 
 router.post('/', [auth, authorized], async (req, res) => {
 
@@ -47,5 +47,7 @@ router.get('/', auth, async (req, res) => {
     }
     res.send(newBuildings);
 });
+
+router.delete("/:id", [auth, authorized], buildingController.deleteBuilding);
 
 module.exports = router;

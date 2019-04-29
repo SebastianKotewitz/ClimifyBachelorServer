@@ -1,5 +1,6 @@
 const {User} = require('../../models/user');
 const {Room} = require('../../models/room');
+const {Beacon} = require('../../models/beacon');
 const {SignalMap} = require('../../models/signalMap');
 const request = require('supertest');
 const mongoose = require('mongoose');
@@ -38,9 +39,10 @@ describe('/api/feedback', () => {
         await User.deleteMany();
         await SignalMap.deleteMany();
         await Room.deleteMany();
+        await Beacon.deleteMany();
     });
 
-    describe(' POST /', () => {
+    describe('POST /', () => {
 
         const exec = () => {
             return request(server)
@@ -50,22 +52,28 @@ describe('/api/feedback', () => {
         };
 
         beforeEach(async () => {
-            signals = [40];
+            signals = [-40];
 
-            beaconId = mongoose.Types.ObjectId();
             buildingId = mongoose.Types.ObjectId();
-
             const room = new Room({
                 name: "222",
                 building: buildingId
             });
             await room.save();
 
+            let beacon = new Beacon({name: "hej", room,
+                uuid: "f7826da6-4fa2-4e98-8024-bc5b71e0893b"});
+
+            await beacon.save();
+
+            beaconId = beacon.id;
+
+
             roomId = room.id;
 
             signalMap = {
                 room: roomId,
-                beacons: [{_id: beaconId, signals: [39, 41]}]
+                beacons: [{_id: beaconId, signals: [-39, -41]}]
             };
 
             beacons = [{
@@ -90,6 +98,15 @@ describe('/api/feedback', () => {
         it("Should have reference to room", async () => {
             const res = await exec();
             expect(res.body.room).to.equal(roomId.toString());
+        });
+
+        it("Should return 400 if one of the beacons doesn't exist in the system", async () => {
+            beacons = [{
+                beaconId: mongoose.Types.ObjectId(),
+                signals
+            }];
+
+            await expect(exec()).to.be.rejectedWith("Bad Request");
         });
 
         it("Should set isActive to false by default if room not provided", async () => {
@@ -174,4 +191,47 @@ describe('/api/feedback', () => {
         });
     });
 
+
+    describe(" GET / ", () => {
+
+        const exec = () => {
+            return request(server)
+              .get('/api/signalMaps')
+              .set({'x-auth-token': token})
+        };
+
+        beforeEach(async () => {
+            signals = [40];
+
+            beaconId = mongoose.Types.ObjectId();
+            buildingId = mongoose.Types.ObjectId();
+
+            const room = new Room({
+                name: "222",
+                building: buildingId
+            });
+            await room.save();
+
+            roomId = room.id;
+
+            signalMap = new SignalMap({
+                room: roomId,
+                beacons: [{_id: beaconId, signals: [39, 41]}]
+            });
+
+            await signalMap.save();
+
+            beacons = [{
+                beaconId,
+                signals
+            }];
+            token = user.generateAuthToken();
+        });
+
+        it("Should return array with correct beaconIds ", async () => {
+            const res = await exec();
+            expect(res.body[0].beacons[0]._id).to.equal(beaconId.toString());
+        });
+
+    })
 });

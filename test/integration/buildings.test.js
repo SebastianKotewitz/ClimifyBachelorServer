@@ -96,10 +96,12 @@ describe('/api/buildings', () => {
         beforeEach(async () => {
             building = new Building({name: "324"});
             buildingId = building.id;
+            user.adminOnBuildings = [buildingId];
+            user.role = 1;
+            await user.save();
             token = user.generateAuthToken();
 
             await building.save();
-            await room.save();
         });
 
         const exec = () => {
@@ -109,10 +111,16 @@ describe('/api/buildings', () => {
         };
 
         it("Should return empty array of buildings after building was deleted", async () => {
-
+            await exec();
+            const buildings = await Building.find();
+            expect(buildings.length).to.equal(0);
         });
 
-
+        it("Should return 403 if user was not admin on the building", async () => {
+            user.adminOnBuildings = [];
+            await user.save();
+            await expect(exec()).to.be.rejectedWith("Forbidden");
+        });
     });
 
     describe("GET /:id", () => {

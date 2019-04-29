@@ -1,5 +1,6 @@
 const {SignalMap, validate, estimateRoom} = require("../models/signalMap");
 const {Room} = require("../models/room");
+const {Beacon} = require("../models/beacon");
 
 const createSignalMap = async (req, res) => {
     const {error} = validate(req.body);
@@ -8,6 +9,11 @@ const createSignalMap = async (req, res) => {
 
     const {beacons, buildingId, roomId} = req.body;
     let estimatedRoomId;
+
+    for (let i = 0; i < beacons.length; i++) {
+        const beacon = await Beacon.findById(beacons[i].beaconId);
+        if (!beacon) return res.status(400).send(`Beacon with id ${beacons[i].beaconId} did not exist in database`);
+    }
 
     if (!roomId) {
         if (!buildingId) res.status(400).send("Please provide either roomId or buildingId");

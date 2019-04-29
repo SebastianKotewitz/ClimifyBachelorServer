@@ -169,6 +169,42 @@ describe('Estimate room', () => {
 
     });
 
+    it("Should ", () => {
+        signalMaps = [
+            {
+                isActive: true,
+                _id: "5cc6d646032e5567cf4e31aa",
+                room: "5cc6cd0e785ba2674dbc7482",
+                beacons: [
+                    {
+                        signals: [
+                            -73,
+                            -69.5,
+                            -67
+                        ],
+                        _id: "5cc6d646032e5567cf4e31ac"
+                    },
+                    {
+                        signals: [
+                            -64,
+                            -70
+                        ],
+                        _id: "5cc6d646032e5567cf4e31ab"
+                    }
+                ],
+                __v: 0
+            }
+        ];
+
+        registeredBeacons = [
+            {signals: [-78], beaconId: "5ca4b1776a3ec26dfd07362d"},
+            {signals: [-70], beaconId: "5ca45b286a3ec26dfd0735b5"}
+        ];
+
+        const res = exec();
+        expect(res).to.equal("5cc6cd0e785ba2674dbc7482")
+    });
+
     describe("update nearest neighbors", () => {
         let nearestNeighbors;
         let newNeighbor;

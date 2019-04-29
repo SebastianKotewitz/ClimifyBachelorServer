@@ -9,13 +9,6 @@ const beaconSchema = new mongoose.Schema({
        maxLength: 255,
        required: true
     },
-
-    location: {
-        type: String,
-        minLength: 1,
-        maxLength: 255,
-        required: true
-    },
     room: {
         type: roomSchema,
         required: true

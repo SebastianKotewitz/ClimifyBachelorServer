@@ -30,8 +30,7 @@ function alignedClientBeacons(serverBeacons, clientBeacons) {
         alignedBeacons[index] = clientBeacons[i];
     }
 
-    // console.log('server: ', serverBeacons);
-    // console.log('client: ', clientBeacons);
+
     return alignedBeacons;
 }
 
@@ -75,7 +74,7 @@ function estimateRoom(beacons, signalMaps, k) {
 
         const alignedBeacons = alignedClientBeacons(signalMaps[i].beacons, beacons);
 
-        for (let j = 0; j < alignedBeacons[0].signals.length; j++) {
+        for (let j = 0; j < alignedBeacons[i].signals.length; j++) {
 
             let sum = 0;
             for (let k = 0; k < signalMaps[i].beacons.length; k++) {
