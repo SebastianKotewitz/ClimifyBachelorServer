@@ -154,7 +154,7 @@ function validateSignalMap(signalMap) {
     const schema = {
         beacons: Joi.array().items(Joi.object({
             beaconId: Joi.objectId().required(),
-            signals: Joi.array().items(Joi.number().min(-200).max(100))
+            signals: Joi.array().items(Joi.number().min(-200).max(0))
         }).required()).required(),
         roomId: Joi.objectId(),
         buildingId: Joi.objectId()

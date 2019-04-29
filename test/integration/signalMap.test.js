@@ -21,7 +21,6 @@ describe('/api/feedback', () => {
     let beacons;
     let signalMap;
 
-
     before(async () => {
         server = await app.listen(config.get('port'));
         await mongoose.connect(config.get('db'), {useNewUrlParser: true});
@@ -52,8 +51,6 @@ describe('/api/feedback', () => {
 
         beforeEach(async () => {
             signals = [40];
-
-
 
             beaconId = mongoose.Types.ObjectId();
             buildingId = mongoose.Types.ObjectId();
@@ -129,6 +126,52 @@ describe('/api/feedback', () => {
             expect(res.body.room).to.equal(signalMap.room.toString());
         });
 
+    });
+
+    describe("PATCH /confirm-room/:id Confirm room", () => {
+
+        let signalMapId;
+        const exec = () => {
+            return request(server)
+              .patch('/api/signalMaps/confirm-room/' + signalMapId)
+              .set({'x-auth-token': token})
+              .send({roomId, beacons, buildingId})
+        };
+
+        beforeEach(async () => {
+            signals = [40];
+
+            beaconId = mongoose.Types.ObjectId();
+            buildingId = mongoose.Types.ObjectId();
+
+            const room = new Room({
+                name: "222",
+                building: buildingId
+            });
+            await room.save();
+
+            roomId = room.id;
+
+            signalMap = new SignalMap({
+                room: roomId,
+                beacons: [{_id: beaconId, signals: [39, 41]}]
+            });
+            signalMapId = signalMap.id;
+
+            await signalMap.save();
+
+            token = user.generateAuthToken();
+        });
+
+        it("Should return updated signal map with isValid = true", async () => {
+            const signalMap = await exec();
+            expect(signalMap.body.isActive).to.be.true;
+        });
+
+        it("Should return 404 if signal map did not exist", async () => {
+            signalMapId = mongoose.Types.ObjectId();
+            await expect(exec()).to.be.rejectedWith("Not Found");
+        });
     });
 
 });
