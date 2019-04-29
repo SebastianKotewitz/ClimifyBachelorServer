@@ -29,7 +29,7 @@ const createSignalMap = async (req, res) => {
         }
         estimatedRoomId = await estimateNearestNeighbors(beacons, signalMaps);
     } else {
-        if(SignalMap.find({room: roomId}))
+        if(await SignalMap.find({room: roomId}))
             return res.status(400).send("There is already a signalmap for the given room");
     }
 
