@@ -25,11 +25,16 @@ function alignedClientBeacons(serverBeacons, clientBeacons) {
 
     const alignedBeacons = new Array(serverBeacons.length);
 
+    console.log('server: ', serverBeacons);
+    console.log('client: ', clientBeacons);
+
     for (let i = 0; i < clientBeacons.length; i++) {
         const index = serverBeacons.findIndex(beacon => beacon._id.toString() === clientBeacons[i].beaconId.toString());
         alignedBeacons[index] = clientBeacons[i];
     }
 
+
+    console.log('alignedBeacons: ', alignedBeacons);
 
     return alignedBeacons;
 }
@@ -60,26 +65,37 @@ function findIndexOfMaxDistanceNeighbor(nearestNeighbors) {
     return maxDistIndex;
 }
 
-function estimateRoom(beacons, signalMaps, k) {
+function maxSignalsAmount(signalMap) {
+
+    let maxSignalsAmount = 0;
+
+    for (let i = 0; i < signalMap.beacons.length; i++) {
+        if (signalMap.beacons[i] && signalMap.beacons[i].signals) {
+            const signalsAmount = signalMap.beacons[i].signals.length;
+            if (maxSignalsAmount < signalsAmount)
+                maxSignalsAmount = signalsAmount;
+        }
+    }
+    return maxSignalsAmount;
+}
+
+function estimateNearestNeighbors(clientBeacons, signalMaps, k) {
 
     if (!k)
         k = 2;
 
-    
     let nearestNeighbors = new Array(k);
-    console.log(nearestNeighbors);
     nearestNeighbors[0] = {
         room: signalMaps[0].room,
         distance: Number.MAX_SAFE_INTEGER
     };
 
-    console.log("nearest: ", nearestNeighbors);
-
     for (let i = 0; i < signalMaps.length; i++) {
 
-        const alignedBeacons = alignedClientBeacons(signalMaps[i].beacons, beacons);
+        const alignedBeacons = alignedClientBeacons(signalMaps[i].beacons, clientBeacons);
+        const maxAmountOfSignals = maxSignalsAmount(signalMaps[i]);
 
-        for (let j = 0; j < alignedBeacons[0].signals.length; j++) {
+        for (let j = 0; j < maxAmountOfSignals; j++) {
 
             let sum = 0;
             for (let k = 0; k < signalMaps[i].beacons.length; k++) {
@@ -102,7 +118,6 @@ function estimateRoom(beacons, signalMaps, k) {
         }
     }
 
-    console.log("nearest", nearestNeighbors);
     return roomOfMostNeighbors(nearestNeighbors);
 }
 
@@ -169,7 +184,7 @@ function validateSignalMap(signalMap) {
 exports.SignalMap = SignalMap;
 exports.validate = validateSignalMap;
 exports.signalMapSchema = signalMapSchema;
-exports.estimateRoom = estimateRoom;
+exports.estimateNearestNeighbors = estimateNearestNeighbors;
 exports.alignedClientBeacons = alignedClientBeacons;
 exports.updateNearestNeighbors = updateNearestNeighbors;
 exports.findIndexOfMaxDistanceNeighbor = findIndexOfMaxDistanceNeighbor;

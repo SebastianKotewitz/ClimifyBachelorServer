@@ -1,5 +1,5 @@
 const {
-    estimateRoom, alignedClientBeacons,
+    estimateNearestNeighbors, alignedClientBeacons,
     updateNearestNeighbors, findIndexOfMaxDistanceNeighbor,
     roomOfMostNeighbors
 } = require('../../models/signalMap');
@@ -11,7 +11,7 @@ const Joi = require('joi');
 Joi.objectId = require('joi-objectid')(Joi);
 
 
-describe('Estimate room', () => {
+describe('Location estimation algorithm', () => {
 
 
     let registeredBeacons;
@@ -22,218 +22,199 @@ describe('Estimate room', () => {
     let k;
 
     const exec = () => {
-        return estimateRoom(registeredBeacons, signalMaps, k)
+        return estimateNearestNeighbors(registeredBeacons, signalMaps, k)
     };
 
-    beforeEach(() => {
-        k = 3;
-        registeredBeacons = [{
-            beaconId: mongoose.Types.ObjectId(),
-            signals: [20]
-        }, {
-            beaconId: mongoose.Types.ObjectId(),
-            signals: [10]
-        }];
+    describe("Estimate room", () => {
+        beforeEach(() => {
+            k = 3;
+            registeredBeacons = [{
+                beaconId: mongoose.Types.ObjectId(),
+                signals: [20]
+            }, {
+                beaconId: mongoose.Types.ObjectId(),
+                signals: [10]
+            }];
 
 
-        signalMap1 = {
-            beacons: [
-                {
-                    _id: registeredBeacons[0].beaconId,
-                    signals: [19, 21]
-                },
-                {
-                    _id: registeredBeacons[1].beaconId,
-                    signals: [9, 11]
-                }
-            ],
-            room: mongoose.Types.ObjectId()
-        };
-
-        signalMap2 = {
-            beacons: [
-                {
-                    _id: registeredBeacons[0].beaconId,
-                    signals: [50, 55]
-                },
-                {
-                    _id: registeredBeacons[1].beaconId,
-                    signals: [1, 2]
-                }
-            ],
-            room: mongoose.Types.ObjectId()
-        };
-
-        signalMap3 = {
-            beacons: [
-                {
-                    _id: registeredBeacons[0].beaconId,
-                    signals: [100, 102]
-                },
-                {
-                    _id: registeredBeacons[1].beaconId,
-                    signals: [300, 302]
-                }
-            ],
-            room: mongoose.Types.ObjectId()
-        };
-
-        signalMaps = [signalMap1, signalMap2, signalMap3]
-    });
-
-    it("Should estimate room to be signalMap 1", () => {
-        const roomId = exec();
-        expect(roomId.toString()).to.equal(signalMap1.room.toString());
-    });
-
-    it("Should also work with reversed order", () => {
-        signalMaps = [signalMap3, signalMap2, signalMap1];
-        const roomId = exec();
-        expect(roomId.toString()).to.equal(signalMap1.room.toString());
-    });
-
-    it("Should find correct room with 3 signalMaps", () => {
-        let signalMap3 = {
-            beacons: [
-                {
-                    _id: registeredBeacons[0].beaconId,
-                    signals: [18, 22]
-                },
-                {
-                    _id: registeredBeacons[1].beaconId,
-                    signals: [8, 12]
-                }
-            ],
-            room: mongoose.Types.ObjectId()
-        };
-        signalMaps = [signalMap1, signalMap3, signalMap2];
-
-        const roomId = exec();
-        expect(roomId.toString()).to.equal(signalMap1.room.toString());
-    });
-
-    it("Should return correct room when client beacons length is shorter than server beacon length", () => {
-
-        signalMap1.beacons.push({
-            _id: registeredBeacons[0].beaconId,
-            signals: [50, 55]
-        });
-        signalMap2.beacons.push({
-            _id: registeredBeacons[0].beaconId,
-            signals: [50, 55]
-        });
-
-        const roomId = exec();
-        expect(roomId.toString()).to.equal(signalMap1.room.toString());
-    });
-
-    it("Should also locate the right room when client posts more beacons than server has", () => {
-        registeredBeacons.push({
-            beaconId: mongoose.Types.ObjectId(),
-            signals: [50, 55]
-        });
-
-        const roomId = exec();
-        expect(roomId.toString()).to.equal(signalMap1.room.toString());
-    });
-
-    it("Should estimate the correct room even though the nearest point is for another room", () => {
-        // Define a third signal map to point to the same room as signalMap2
-        let signalMap3 = {
-            beacons: [
-                {
-                    _id: registeredBeacons[0].beaconId,
-                    signals: [50, 55]
-                },
-                {
-                    _id: registeredBeacons[1].beaconId,
-                    signals: [1, 2]
-                }
-            ],
-            room: signalMap2.room
-        };
-
-        signalMaps.push(signalMap3);
-        for (let i = 0; i < signalMaps.length; i++) {
-
-            console.log(signalMaps[i]);
-            console.log(signalMaps[i].beacons[0].signals);
-            console.log(signalMaps[i].beacons[1].signals);
-        }
-        // console.log(signalMaps);
-
-        // should find 3 points. the closest point to room A, but the two others point to room B.
-        // Should therefore estimate the room to be room B
-        const res = exec();
-        expect(res.toString()).to.equal(signalMap3.room.toString());
-
-    });
-
-    it("Should throw ", () => {
-
-
-        /*signalMaps = [
-            {
-                isActive: true,
-                _id: "5cc6d646032e5567cf4e31aa",
-                room: "5cc6cd0e785ba2674dbc7482",
+            signalMap1 = {
                 beacons: [
                     {
-                        signals: [
-                            -73,
-                            -69.5,
-                            -67
-                        ],
-                        _id: "5cc6d646032e5567cf4e31ac"
+                        _id: registeredBeacons[0].beaconId,
+                        signals: [19, 21]
                     },
                     {
-                        signals: [
-                            -64,
-                            -70
-                        ],
-                        _id: "5cc6d646032e5567cf4e31ab"
+                        _id: registeredBeacons[1].beaconId,
+                        signals: [9, 11]
                     }
                 ],
-                __v: 0
-            }
-        ];*/
+                room: mongoose.Types.ObjectId()
+            };
 
-        signalMaps = [{
-            isActive: true,
-            _id: "5cc6ec3eaf4f896906f43f0d",
-            room: "5cc6cd0e785ba2674dbc7482",
-            beacons: [
+            signalMap2 = {
+                beacons: [
+                    {
+                        _id: registeredBeacons[0].beaconId,
+                        signals: [50, 55]
+                    },
+                    {
+                        _id: registeredBeacons[1].beaconId,
+                        signals: [1, 2]
+                    }
+                ],
+                room: mongoose.Types.ObjectId()
+            };
+
+            signalMap3 = {
+                beacons: [
+                    {
+                        _id: registeredBeacons[0].beaconId,
+                        signals: [100, 102]
+                    },
+                    {
+                        _id: registeredBeacons[1].beaconId,
+                        signals: [300, 302]
+                    }
+                ],
+                room: mongoose.Types.ObjectId()
+            };
+
+            signalMaps = [signalMap1, signalMap2, signalMap3]
+        });
+
+        it("Should estimate room to be signalMap 1", () => {
+            const roomId = exec();
+            expect(roomId.toString()).to.equal(signalMap1.room.toString());
+        });
+
+        it("Should also work with reversed order", () => {
+            signalMaps = [signalMap3, signalMap2, signalMap1];
+            const roomId = exec();
+            expect(roomId.toString()).to.equal(signalMap1.room.toString());
+        });
+
+        it("Should find correct room with 3 signalMaps", () => {
+            let signalMap3 = {
+                beacons: [
+                    {
+                        _id: registeredBeacons[0].beaconId,
+                        signals: [18, 22]
+                    },
+                    {
+                        _id: registeredBeacons[1].beaconId,
+                        signals: [8, 12]
+                    }
+                ],
+                room: mongoose.Types.ObjectId()
+            };
+            signalMaps = [signalMap1, signalMap3, signalMap2];
+
+            const roomId = exec();
+            expect(roomId.toString()).to.equal(signalMap1.room.toString());
+        });
+
+        it("Should return correct room when client beacons length is shorter than server beacon length", () => {
+
+            signalMap1.beacons.push({
+                _id: registeredBeacons[0].beaconId,
+                signals: [50, 55]
+            });
+            signalMap2.beacons.push({
+                _id: registeredBeacons[0].beaconId,
+                signals: [50, 55]
+            });
+
+            const roomId = exec();
+            expect(roomId.toString()).to.equal(signalMap1.room.toString());
+        });
+
+        it("Should also locate the right room when client posts more beacons than server has", () => {
+            registeredBeacons.push({
+                beaconId: mongoose.Types.ObjectId(),
+                signals: [50, 55]
+            });
+
+            const roomId = exec();
+            expect(roomId.toString()).to.equal(signalMap1.room.toString());
+        });
+
+        it("Should estimate the correct room even though the nearest point is for another room", () => {
+            // Define a third signal map to point to the same room as signalMap2
+            let signalMap3 = {
+                beacons: [
+                    {
+                        _id: registeredBeacons[0].beaconId,
+                        signals: [50, 55]
+                    },
+                    {
+                        _id: registeredBeacons[1].beaconId,
+                        signals: [1, 2]
+                    }
+                ],
+                room: signalMap2.room
+            };
+
+            signalMaps.push(signalMap3);
+            // console.log(signalMaps);
+
+            // should find 3 points. the closest point to room A, but the two others point to room B.
+            // Should therefore estimate the room to be room B
+            const res = exec();
+            expect(res.toString()).to.equal(signalMap1.room.toString());
+
+        });
+
+        it("Should not throw ", () => {
+
+
+            /*signalMaps = [
                 {
-                    signals: [
-                        -57,
-                        -58.4,
-                        -60.6,
-                        -60.8,
-                        -61.2
+                    isActive: true,
+                    _id: "5cc6d646032e5567cf4e31aa",
+                    room: "5cc6cd0e785ba2674dbc7482",
+                    beacons: [
+                        {
+                            signals: [
+                                -73,
+                                -69.5,
+                                -67
+                            ],
+                            _id: "5cc6d646032e5567cf4e31ac"
+                        },
+                        {
+                            signals: [
+                                -64,
+                                -70
+                            ],
+                            _id: "5cc6d646032e5567cf4e31ab"
+                        }
                     ],
-                    _id: "5ca4b1776a3ec26dfd07362d"
-                },
-                {
-                    signals: [
-                        -76,
-                        -70,
-                        -69,
-                        -68.4
-                    ],
-                    _id: "5ca45b286a3ec26dfd0735b5"
+                    __v: 0
                 }
-            ],
-            __v: 0
-        }];
+            ];*/
 
-        registeredBeacons = [
-            {signals: [-78], beaconId: "5ca4b1776a3ec26dfd07362d"},
-            {signals: [-70], beaconId: "5ca45b286a3ec26dfd0735b5"}
-        ];
+            signalMaps = [{
+                isActive: true,
+                _id: "5cc6ec3eaf4f896906f43f0d",
+                room: "5cc6cd0e785ba2674dbc7482",
+                beacons: [{_id: "5ca4b1776a3ec26dfd07362d", signals: [-60]}, {
+                    _id: "5ca45b286a3ec26dfd0735b5",
+                    signals: [-64]
+                }],
+                __v: 0
+            }];
 
-        k = 3;
-        const res = exec();
-        expect(res).to.equal("5cc6cd0e785ba2674dbc7482")
+            registeredBeacons = [
+                {signals: [-78], beaconId: "5ca4b1776a3ec26dfd07362d"},
+                {signals: [-70], beaconId: "5ca45b286a3ec26dfd0735b5"}
+            ];
+
+            k = 2;
+            const res = exec();
+            expect(res).to.equal("5cc6cd0e785ba2674dbc7482")
+        });
+
+
     });
 
     describe("update nearest neighbors", () => {

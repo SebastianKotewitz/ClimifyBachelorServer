@@ -4,13 +4,18 @@ const Joi = require('joi');
 
 const beaconSchema = new mongoose.Schema({
     name: {
-       type: String,
-       minLength: 1,
-       maxLength: 255,
-       required: true
+        type: String,
+        minLength: 1,
+        maxLength: 255,
+        required: true
     },
-    room: {
-        type: roomSchema,
+    // room: {
+    //     type: roomSchema,
+    //     required: true
+    // },
+    building: {
+        type: mongoose.Types.ObjectId,
+        ref: "Building",
         required: true
     },
     uuid: {

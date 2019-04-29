@@ -61,8 +61,10 @@ describe('/api/feedback', () => {
             });
             await room.save();
 
-            let beacon = new Beacon({name: "hej", room,
-                uuid: "f7826da6-4fa2-4e98-8024-bc5b71e0893b"});
+            let beacon = new Beacon({
+                name: "hej", room,
+                uuid: "f7826da6-4fa2-4e98-8024-bc5b71e0893b"
+            });
 
             await beacon.save();
 
@@ -82,6 +84,82 @@ describe('/api/feedback', () => {
             }];
             token = user.generateAuthToken();
         });
+
+        it("Should not throw error", async () => {
+
+
+            let room = new Room({building: mongoose.Types.ObjectId(), name: "hej"});
+            let room2 = new Room({building: mongoose.Types.ObjectId(), name: "hej2"});
+            await room.save();
+            await room2.save();
+            let beacon = new Beacon({name: "hej", room, uuid: "f7826da6-4fa2-4e98-8024-bc5b71e0893b"});
+            let beacon2 = new Beacon({name: "hej", room, uuid: "f7826da6-4fa2-4e98-8024-bc5b71e0893b"});
+            await beacon.save();
+            await beacon2.save();
+
+
+            let signalMap = new SignalMap({
+                isActive: true,
+                room: room.id,
+                beacons: [
+                    {
+                        signals: [
+                            -73,
+                            -69.5,
+                            -67
+                        ],
+                        _id: beacon.id
+                    },
+                    {
+                        signals: [
+                            -64,
+                            -70
+                        ],
+                        _id: beacon2.id
+                    }
+                ],
+                __v: 0
+            });
+            await signalMap.save();
+            let signalMap2 = new SignalMap({
+                isActive: true,
+                room: room2.id,
+                beacons: [
+                    {
+                        signals: [
+                            -73,
+                            -69.5,
+                            -67
+                        ],
+                        _id: "5cc6d646032e5567cf4e31ac"
+                    },
+                    {
+                        signals: [
+                            -64,
+                            -70
+                        ],
+                        _id: "5cc6d646032e5567cf4e31ab"
+                    }
+                ]
+            });
+            await signalMap2.save();
+
+
+            const requestFromChril = {
+                buildingId: room.building,
+                beacons: [
+                    {beaconId: beacon.id, signals: [-62]}, {
+                        beaconId: beacon2.id,
+                        signals: [-70]
+                    }]
+            };
+
+            const res = await request(server)
+              .post('/api/signalMaps')
+              .set({'x-auth-token': token})
+              .send(requestFromChril);
+        });
+
 
         it("Should return 400 if neither roomId or buildingId provided", async () => {
             buildingId = undefined;

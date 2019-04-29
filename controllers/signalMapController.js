@@ -1,4 +1,4 @@
-const {SignalMap, validate, estimateRoom} = require("../models/signalMap");
+const {SignalMap, validate, estimateNearestNeighbors} = require("../models/signalMap");
 const {Room} = require("../models/room");
 const {Beacon} = require("../models/beacon");
 
@@ -19,7 +19,7 @@ const createSignalMap = async (req, res) => {
     if (!roomId) {
         if (!buildingId) res.status(400).send("Please provide either roomId or buildingId");
 
-        let signalMaps = await SignalMap.find();
+        let signalMaps = await SignalMap.find({isActive: true});
         for (let i = 0; i < signalMaps.length; i++) {
             const room = await Room.findById(signalMaps[i].room);
             if (room.building.toString() !== buildingId.toString()) {
@@ -27,7 +27,10 @@ const createSignalMap = async (req, res) => {
                 i--;
             }
         }
-        estimatedRoomId = await estimateRoom(beacons, signalMaps);
+        estimatedRoomId = await estimateNearestNeighbors(beacons, signalMaps);
+    } else {
+        if(SignalMap.find({room: roomId}))
+            return res.status(400).send("There is already a signalmap for the given room");
     }
 
     let signalMap = new SignalMap({
