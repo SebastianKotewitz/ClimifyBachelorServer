@@ -29,8 +29,6 @@ const createSignalMap = async (req, res) => {
         }
         estimatedRoomId = await estimateRoom(beacons, signalMaps);
     }
-    const room = await Room.findById(roomId);
-
 
     let signalMap = new SignalMap({
         room: roomId || estimatedRoomId,

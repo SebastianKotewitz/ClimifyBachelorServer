@@ -62,13 +62,18 @@ function findIndexOfMaxDistanceNeighbor(nearestNeighbors) {
 
 function estimateRoom(beacons, signalMaps, k) {
 
+    if (!k)
+        k = 2;
 
+    
     let nearestNeighbors = new Array(k);
     console.log(nearestNeighbors);
     nearestNeighbors[0] = {
         room: signalMaps[0].room,
         distance: Number.MAX_SAFE_INTEGER
     };
+
+    console.log("nearest: ", nearestNeighbors);
 
     for (let i = 0; i < signalMaps.length; i++) {
 

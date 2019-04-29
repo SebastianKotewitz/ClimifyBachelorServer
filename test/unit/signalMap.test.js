@@ -170,7 +170,9 @@ describe('Estimate room', () => {
     });
 
     it("Should throw ", () => {
-        signalMaps = [
+
+
+        /*signalMaps = [
             {
                 isActive: true,
                 _id: "5cc6d646032e5567cf4e31aa",
@@ -194,13 +196,42 @@ describe('Estimate room', () => {
                 ],
                 __v: 0
             }
-        ];
+        ];*/
+
+        signalMaps = [{
+            isActive: true,
+            _id: "5cc6ec3eaf4f896906f43f0d",
+            room: "5cc6cd0e785ba2674dbc7482",
+            beacons: [
+                {
+                    signals: [
+                        -57,
+                        -58.4,
+                        -60.6,
+                        -60.8,
+                        -61.2
+                    ],
+                    _id: "5ca4b1776a3ec26dfd07362d"
+                },
+                {
+                    signals: [
+                        -76,
+                        -70,
+                        -69,
+                        -68.4
+                    ],
+                    _id: "5ca45b286a3ec26dfd0735b5"
+                }
+            ],
+            __v: 0
+        }];
 
         registeredBeacons = [
             {signals: [-78], beaconId: "5ca4b1776a3ec26dfd07362d"},
             {signals: [-70], beaconId: "5ca45b286a3ec26dfd0735b5"}
         ];
 
+        k = 3;
         const res = exec();
         expect(res).to.equal("5cc6cd0e785ba2674dbc7482")
     });
