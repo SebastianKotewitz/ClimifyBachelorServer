@@ -14,16 +14,16 @@ const signalMapSchema = new mongoose.Schema({
     room: {
         type: mongoose.Types.ObjectId,
         ref: "Room"
+    },
+    isActive: {
+        type: Boolean,
+        default: false
     }
 });
 
 function alignedClientBeacons(serverBeacons, clientBeacons) {
 
     const alignedBeacons = new Array(serverBeacons.length);
-    console.log("called");
-    console.log("client", clientBeacons);
-    console.log("server", serverBeacons);
-
 
     for (let i = 0; i < clientBeacons.length; i++) {
         const index = serverBeacons.findIndex(beacon => beacon._id.toString() === clientBeacons[i].beaconId.toString());
@@ -32,13 +32,41 @@ function alignedClientBeacons(serverBeacons, clientBeacons) {
 
     // console.log('server: ', serverBeacons);
     // console.log('client: ', clientBeacons);
-    // console.log('alignedBeacons: ', alignedBeacons);
     return alignedBeacons;
 }
 
-function estimateRoom(beacons, signalMaps) {
+function updateNearestNeighbors(nearestNeighbors, newNeighbor) {
 
-    const minDistToRoom = {
+    const index = findIndexOfMaxDistanceNeighbor(nearestNeighbors);
+    if (!nearestNeighbors[index] || newNeighbor.distance < nearestNeighbors[index].distance)
+        nearestNeighbors[index] = newNeighbor;
+
+    return nearestNeighbors;
+}
+
+function findIndexOfMaxDistanceNeighbor(nearestNeighbors) {
+    let maxDistance = -1;
+    let maxDistIndex = -1;
+
+    for (let i = 0; i < nearestNeighbors.length; i++) {
+        if (!nearestNeighbors[i])
+            return i;
+
+        if (nearestNeighbors[i].distance > maxDistance) {
+            maxDistance = nearestNeighbors[i].distance;
+            maxDistIndex = i;
+        }
+    }
+
+    return maxDistIndex;
+}
+
+function estimateRoom(beacons, signalMaps, k) {
+
+
+    let nearestNeighbors = new Array(k);
+    console.log(nearestNeighbors);
+    nearestNeighbors[0] = {
         room: signalMaps[0].room,
         distance: Number.MAX_SAFE_INTEGER
     };
@@ -47,8 +75,7 @@ function estimateRoom(beacons, signalMaps) {
 
         const alignedBeacons = alignedClientBeacons(signalMaps[i].beacons, beacons);
 
-
-        for (let j = 0; j < alignedBeacons[i].signals.length; j++) {
+        for (let j = 0; j < alignedBeacons[0].signals.length; j++) {
 
             let sum = 0;
             for (let k = 0; k < signalMaps[i].beacons.length; k++) {
@@ -63,17 +90,62 @@ function estimateRoom(beacons, signalMaps) {
             }
 
             const distance = Math.sqrt(sum);
-            console.log(distance);
-            if (distance < minDistToRoom.distance) {
-                minDistToRoom.room = signalMaps[i].room;
-                minDistToRoom.distance = distance;
-            }
+
+            nearestNeighbors = updateNearestNeighbors(nearestNeighbors, {
+                room: signalMaps[i].room,
+                distance
+            });
         }
     }
 
-    console.log(minDistToRoom);
+    console.log("nearest", nearestNeighbors);
+    return roomOfMostNeighbors(nearestNeighbors);
+}
 
-    return minDistToRoom.room;
+function roomOfMostNeighbors(nearestNeighbors) {
+    const roomCount = [];
+    const roomIds = new Set();
+    const minDistances = [];
+
+    for (let i = 0; i < nearestNeighbors.length; i++) {
+        let roomAmount = roomIds.size;
+
+        roomIds.add(nearestNeighbors[i].room.toString());
+        let addedIndex;
+        if (roomAmount !== roomIds.size) {
+            roomCount.push(0);
+            minDistances.push(nearestNeighbors[i].distance);
+            addedIndex = roomCount.length - 1;
+        } else {
+            addedIndex = [...roomIds].indexOf(nearestNeighbors[i].room.toString());
+            roomCount[addedIndex]++;
+
+            if (minDistances[addedIndex] > nearestNeighbors[i].distance)
+                minDistances[addedIndex] = nearestNeighbors[i].distance;
+        }
+    }
+    const maxCount = Math.max(...roomCount);
+
+    const roomIdArray = Array.from(roomIds);
+    const indexOfMax = roomCount.indexOf(maxCount);
+
+    let minDistIndex = -1;
+    let minDistance = Number.MAX_SAFE_INTEGER;
+
+
+    if (roomCount.filter(elem => elem === maxCount).length > 1) {
+        for (let i = 0; i < roomCount.length; i++) {
+            if (roomCount[i] === maxCount && minDistance > minDistances[i]) {
+                minDistance = minDistances[i];
+                minDistIndex = i;
+            }
+        }
+        return roomIdArray[minDistIndex]
+    } else {
+        return roomIdArray[indexOfMax];
+    }
+
+
 }
 
 const SignalMap = mongoose.model('SignalMap', signalMapSchema);
@@ -95,3 +167,6 @@ exports.validate = validateSignalMap;
 exports.signalMapSchema = signalMapSchema;
 exports.estimateRoom = estimateRoom;
 exports.alignedClientBeacons = alignedClientBeacons;
+exports.updateNearestNeighbors = updateNearestNeighbors;
+exports.findIndexOfMaxDistanceNeighbor = findIndexOfMaxDistanceNeighbor;
+exports.roomOfMostNeighbors = roomOfMostNeighbors;

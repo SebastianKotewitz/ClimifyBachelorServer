@@ -95,7 +95,7 @@ describe('/api/feedback', () => {
             expect(res.body.room).to.equal(roomId.toString());
         });
 
-        it("Should not be set to inactive by default if room not provided", async () => {
+        it("Should set isActive to false by default if room not provided", async () => {
             const signalMap = new SignalMap({
                 beacons: [{
                     _id: beaconId,
@@ -107,14 +107,26 @@ describe('/api/feedback', () => {
 
             roomId = undefined;
             const res = await exec();
-            expect(res.body.isActive).to.not.be.false;
+            expect(res.body.isActive).to.be.false;
+        });
+
+        it("Should set isActive to true if roomId provided", async () => {
+            const res = await exec();
+            expect(res.body.isActive).to.be.true;
         });
 
         it("Should estimate room if roomId not provided", async () => {
+            const signalMap = new SignalMap({
+                beacons: [{
+                    _id: beaconId,
+                    signals: [39, 41]
+                }],
+                room: roomId,
+            });
+            await signalMap.save();
             roomId = undefined;
             const res = await exec();
-
-            expect(res.body.room).to.equal(roomId);
+            expect(res.body.room).to.equal(signalMap.room.toString());
         });
 
     });
