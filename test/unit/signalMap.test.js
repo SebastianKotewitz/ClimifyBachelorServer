@@ -169,7 +169,7 @@ describe('Estimate room', () => {
 
     });
 
-    it("Should ", () => {
+    it("Should throw ", () => {
         signalMaps = [
             {
                 isActive: true,

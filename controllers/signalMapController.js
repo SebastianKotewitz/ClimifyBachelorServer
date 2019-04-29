@@ -13,6 +13,7 @@ const createSignalMap = async (req, res) => {
     for (let i = 0; i < beacons.length; i++) {
         const beacon = await Beacon.findById(beacons[i].beaconId);
         if (!beacon) return res.status(400).send(`Beacon with id ${beacons[i].beaconId} did not exist in database`);
+        beacons[i]._id = beacons[i].beaconId;
     }
 
     if (!roomId) {
@@ -30,12 +31,12 @@ const createSignalMap = async (req, res) => {
     }
     const room = await Room.findById(roomId);
 
+
     let signalMap = new SignalMap({
         room: roomId || estimatedRoomId,
         beacons,
         isActive: !!roomId
     });
-
     await signalMap.save();
     res.send(signalMap);
 };

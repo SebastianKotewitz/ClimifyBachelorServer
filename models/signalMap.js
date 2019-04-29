@@ -74,7 +74,7 @@ function estimateRoom(beacons, signalMaps, k) {
 
         const alignedBeacons = alignedClientBeacons(signalMaps[i].beacons, beacons);
 
-        for (let j = 0; j < alignedBeacons[i].signals.length; j++) {
+        for (let j = 0; j < alignedBeacons[0].signals.length; j++) {
 
             let sum = 0;
             for (let k = 0; k < signalMaps[i].beacons.length; k++) {

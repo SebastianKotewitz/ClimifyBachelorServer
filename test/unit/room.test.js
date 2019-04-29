@@ -32,10 +32,6 @@ describe('Room validation', () => {
             room.name = null;
             await expect(room.validate()).to.be.rejectedWith(mongoose.ValidationError);
         });
-        it('should have a location', async () => {
-            room.location = null;
-            await expect(room.validate()).to.be.rejectedWith(mongoose.ValidationError);
-        });
 
     });
 

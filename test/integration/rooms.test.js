@@ -49,13 +49,13 @@ describe('/api/rooms', () => {
             return request(server)
                 .post('/api/rooms')
                 .set("x-auth-token", token)
-                .send({location, buildingId: building._id, name});
+                .send({buildingId: building._id, name});
         };
 
         beforeEach(async () => {
             building = new Building({name: '324'});
             name = '324';
-            location = '222';
+
 
             await building.save();
 
