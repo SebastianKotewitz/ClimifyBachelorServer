@@ -1,5 +1,5 @@
 const {User} = require('../../models/user');
-const {Room} = require('../../models/room');
+const {Building} = require('../../models/building');
 const request = require('supertest');
 const chai = require("chai");
 const chaiAsPromised = require("chai-as-promised");
@@ -12,7 +12,7 @@ const mongoose = require('mongoose');
 
 describe('/api/beacons', () => {
     let user;
-    let room;
+    let building;
     let token;
 
     before(async () => {
@@ -26,24 +26,27 @@ describe('/api/beacons', () => {
 
     beforeEach(async () => {
         user = new User({role: 1});
-        room = new Room({
+        /*room = new Room({
             name: "222",
             building: mongoose.Types.ObjectId(),
             activeQuestions: [mongoose.Types.ObjectId()],
             location: "222"
+        });*/
+        building = new Building({
+            name: "222",
         });
-        await room.save();
+        await building.save();
         await user.save();
     });
     afterEach(async () => {
         await User.deleteMany();
+        await Building.deleteMany();
     });
 
 
     describe('POST /', () => {
-        let roomId;
+        let buildingId;
         let name;
-        let location;
         let uuid;
         let randomParam;
 
@@ -52,15 +55,14 @@ describe('/api/beacons', () => {
             return request(server)
               .post('/api/beacons')
               .set("x-auth-token", token)
-              .send({uuid, roomId, name, location, randomParam});
+              .send({uuid, buildingId, name, randomParam});
         };
 
         beforeEach(async () => {
             token = user.generateAuthToken();
             uuid = "vsk1vs12-vsk1-sk12-vk12-vk12vk12vk12";
-            roomId = room.id;
+            buildingId = building.id;
             name = "beacon1";
-            location = "222";
             randomParam = undefined;
         });
 

@@ -30,8 +30,7 @@ const Beacon = mongoose.model('Beacon', beaconSchema);
 function validateBeacon(beacon) {
 
     const schema = {
-        roomId: Joi.objectId().required(),
-        location: Joi.string().min(1).max(255),
+        buildingId: Joi.objectId().required(),
         name: Joi.string().min(1).max(255).required(),
         uuid: Joi.string().regex(/^[a-zA-Z\d]{8}-[a-zA-Z\d]{4}-[a-zA-Z\d]{4}-[a-zA-Z\d]{4}-[a-zA-Z\d]{12}$/).required()
     };
