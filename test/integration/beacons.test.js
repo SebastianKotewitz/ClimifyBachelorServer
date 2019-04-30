@@ -73,6 +73,12 @@ describe('/api/beacons', () => {
 
         });
 
+        it("Should accept uuid value", async () => {
+            uuid = "f7826da6-4fa2-4e98-8024-bc5b71e0891e";
+            const res = await exec();
+            expect(res.body).to.be.ok;
+        });
+
         it("should return 403 if user with unauthorized role (0) tries to post beacon", async () => {
             user.role = 0;
             await user.save();

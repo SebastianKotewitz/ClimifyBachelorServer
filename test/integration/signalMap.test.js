@@ -1,4 +1,5 @@
 const {User} = require('../../models/user');
+const {Building} = require('../../models/building');
 const {Room} = require('../../models/room');
 const {Beacon} = require('../../models/beacon');
 const {SignalMap} = require('../../models/signalMap');
@@ -11,7 +12,7 @@ const chaiAsPromised = require("chai-as-promised");
 chai.use(chaiAsPromised);
 const expect = require('chai').expect;
 
-describe('/api/feedback', () => {
+describe('/api/signalMaps', () => {
     let server;
     let user;
     let token;
@@ -54,25 +55,29 @@ describe('/api/feedback', () => {
         beforeEach(async () => {
             signals = [-40];
 
-            buildingId = mongoose.Types.ObjectId();
-            const room = new Room({
-                name: "222",
-                building: buildingId
+
+            const building = new Building({
+                name: "222"
             });
-            await room.save();
+            await building.save();
 
             let beacon = new Beacon({
-                name: "hej", room,
+                name: "hej", building: building.id,
                 uuid: "f7826da6-4fa2-4e98-8024-bc5b71e0893b"
             });
 
             await beacon.save();
 
+            buildingId = building.id;
             beaconId = beacon.id;
 
+            const room = new Room({
+                name: "222",
+                building: building.id
+            });
+            await room.save();
 
             roomId = room.id;
-
             signalMap = {
                 room: roomId,
                 beacons: [{_id: beaconId, signals: [-39, -41]}]
@@ -87,13 +92,12 @@ describe('/api/feedback', () => {
 
         it("Should not throw error", async () => {
 
-
             let room = new Room({building: mongoose.Types.ObjectId(), name: "hej"});
             let room2 = new Room({building: mongoose.Types.ObjectId(), name: "hej2"});
             await room.save();
             await room2.save();
-            let beacon = new Beacon({name: "hej", room, uuid: "f7826da6-4fa2-4e98-8024-bc5b71e0893b"});
-            let beacon2 = new Beacon({name: "hej", room, uuid: "f7826da6-4fa2-4e98-8024-bc5b71e0893b"});
+            let beacon = new Beacon({name: "hej", building: buildingId, uuid: "f7826da6-4fa2-4e98-8024-bc5b71e0893b"});
+            let beacon2 = new Beacon({name: "hej", building: buildingId, uuid: "f7826da6-4fa2-4e98-8024-bc5b71e0893b"});
             await beacon.save();
             await beacon2.save();
 
@@ -187,6 +191,19 @@ describe('/api/feedback', () => {
             await expect(exec()).to.be.rejectedWith("Bad Request");
         });
 
+
+        it("Should return 400 if one of the rssi arrays did not have the same length as the other's", async () => {
+            let newBeacon = new Beacon({
+                name: "hejj", building: buildingId,
+                uuid: "f7826da6-4fa2-4e98-8024-bc5b71e0893b"
+            });
+            beacons.push({
+                beaconId: mongoose.Types.ObjectId(),
+                signals: [10, 23, 60]
+            });
+            await expect(exec()).to.be.rejectedWith("Bad Request");
+        });
+
         it("Should set isActive to false by default if room not provided", async () => {
             const signalMap = new SignalMap({
                 beacons: [{
@@ -194,6 +211,7 @@ describe('/api/feedback', () => {
                     signals: [39, 41]
                 }],
                 room: roomId,
+                isActive: true
             });
             await signalMap.save();
 
@@ -214,12 +232,132 @@ describe('/api/feedback', () => {
                     signals: [39, 41]
                 }],
                 room: roomId,
+                isActive: true
             });
             await signalMap.save();
             roomId = undefined;
             const res = await exec();
             expect(res.body.room).to.equal(signalMap.room.toString());
         });
+
+        it("Should estimate correct room when nearest neighbor is a tie", async () => {
+            let beacon = new Beacon({
+                name: "hejjj", building: buildingId,
+                uuid: "f7826da6-4fa2-4e98-8024-bc5b71e0894b"
+            });
+            await beacon.save();
+
+            let room2 = new Room({
+                building: buildingId,
+                name: "hej"
+            });
+            await room2.save();
+
+            await SignalMap.deleteMany();
+            const signalMaps = [new SignalMap({
+                beacons: [{
+                    _id: beaconId,
+                    signals: [-39, -41]
+                }, {
+                    _id: beacon.id,
+                    signals: [-59, -61]
+                }],
+                room: roomId,
+                isActive: true
+            }), new SignalMap({
+                beacons: [{
+                    _id: beaconId,
+                    signals: [-59, -61]
+                }, {
+                    _id: beacon.id,
+                    signals: [-39, -41]
+                }],
+                room: room2.id,
+                isActive: true
+            }),];
+
+            for (let i = 0; i < signalMaps.length; i++) {
+                await signalMaps[i].save();
+            }
+
+            beacons = [{
+                beaconId: beaconId,
+                signals: [-40]
+            }, {
+                beaconId: beacon.id,
+                signals: [-60]
+            }];
+
+
+            let roooom = roomId;
+            roomId = undefined;
+            const res = await exec();
+            expect(res.body.room.toString()).to.equal(roooom);
+        });
+
+        it("Should not throw error if beacon was in client beacons array but not in servermap", async () => {
+            let beacon = new Beacon({
+                name: "hejjj", building: buildingId,
+                uuid: "f7826da6-4fa2-4e98-8024-bc5b71e0894b"
+            });
+            await beacon.save();
+
+            let room2 = new Room({
+                building: buildingId,
+                name: "hej"
+            });
+            await room2.save();
+
+            await SignalMap.deleteMany();
+            const signalMaps = [new SignalMap({
+                beacons: [{
+                    _id: beaconId,
+                    signals: [-39, -41]
+                }, {
+                    _id: beacon.id,
+                    signals: [-59, -61]
+                }],
+                room: roomId,
+                isActive: true
+            }), new SignalMap({
+                beacons: [{
+                    _id: beaconId,
+                    signals: [-59, -61]
+                }, {
+                    _id: beacon.id,
+                    signals: [-39, -41]
+                }],
+                room: room2.id,
+                isActive: true
+            }),];
+
+            for (let i = 0; i < signalMaps.length; i++) {
+                await signalMaps[i].save();
+            }
+
+            let beaconOnlyFromClient = new Beacon({
+                name: "hejjj", building: buildingId,
+                uuid: "f7826da6-4fa2-4e98-8024-bc5b71e08912"
+            });
+            await beaconOnlyFromClient.save();
+
+            beacons = [{
+                beaconId: beaconId,
+                signals: [-40]
+            }, {
+                beaconId: beacon.id,
+                signals: [-60]
+            }, {
+                beaconId: beaconOnlyFromClient.id,
+                signals: [-20]
+            }];
+
+            let roooom = roomId;
+            roomId = undefined;
+            const res = await exec();
+            expect(res.body.room.toString()).to.equal(roooom);
+        });
+
 
     });
 

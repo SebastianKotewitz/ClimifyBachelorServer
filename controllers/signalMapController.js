@@ -20,6 +20,7 @@ const createSignalMap = async (req, res) => {
         if (!buildingId) res.status(400).send("Please provide either roomId or buildingId");
 
         let signalMaps = await SignalMap.find({isActive: true});
+
         for (let i = 0; i < signalMaps.length; i++) {
             const room = await Room.findById(signalMaps[i].room);
             if (room.building.toString() !== buildingId.toString()) {
@@ -27,7 +28,7 @@ const createSignalMap = async (req, res) => {
                 i--;
             }
         }
-        estimatedRoomId = await estimateNearestNeighbors(beacons, signalMaps);
+        estimatedRoomId = await estimateNearestNeighbors(beacons, signalMaps, 3);
     } else {
         const signalMap = await SignalMap.findOne({room: roomId});
         if(signalMap)

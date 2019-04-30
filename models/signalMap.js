@@ -22,7 +22,7 @@ const signalMapSchema = new mongoose.Schema({
     }
 });
 
-function alignedClientBeacons(serverBeacons, clientBeacons) {
+function alignedClientBeacons(serverBeacons, clientBeacons, ) {
 
     const alignedBeacons = new Array(serverBeacons.length);
 
@@ -83,17 +83,39 @@ function maxSignalsAmount(signalMap) {
 function estimateNearestNeighbors(clientBeacons, signalMaps, k) {
 
     if (!k)
-        k = 2;
+        k = 3;
 
     const initialPoints = [];
     for (let i = 0; i < signalMaps.length; i++) {
         for (let j = 0; j < signalMaps[i].beacons[0].signals.length; j++) {
+            const vector = [];
+            for (let l = 0; l < signalMaps[i].beacons.length; l++) {
+                vector.push(
+                    signalMaps[i].beacons[l].signals[j]
+                )
+            }
+            initialPoints.push({vector, type: signalMaps[i].room.toString()})
         }
     }
-    const dimension = clientBeacons.length;
-    const knnManager = new KnnManager()
 
-    let nearestNeighbors = new Array(k);
+    if (initialPoints.length < k)
+        k = initialPoints.length;
+
+    const dimension = clientBeacons.length;
+    const knnManager = new KnnManager(dimension, initialPoints, k);
+
+    const newPointVector = [];
+    for (let i = 0; i < clientBeacons.length; i++) {
+        newPointVector.push(clientBeacons[i].signals[0]);
+    }
+    const newPoint = {
+        vector: newPointVector
+    };
+
+
+    return knnManager.estimatePointType(newPoint);
+
+    /*let nearestNeighbors = new Array(k);
     nearestNeighbors[0] = {
         room: signalMaps[0].room,
         distance: Number.MAX_SAFE_INTEGER
@@ -127,7 +149,7 @@ function estimateNearestNeighbors(clientBeacons, signalMaps, k) {
         }
     }
 
-    return roomOfMostNeighbors(nearestNeighbors);
+    return roomOfMostNeighbors(nearestNeighbors);*/
 }
 
 function roomOfMostNeighbors(nearestNeighbors) {

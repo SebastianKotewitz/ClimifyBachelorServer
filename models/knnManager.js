@@ -13,10 +13,13 @@ module.exports = class KnnManager {
         this.validTypes = new Set();
 
         for (let i = 0; i < initialPoints.length; i++) {
-            if (!initialPoints[i].vector || initialPoints[i].vector.length !== dimension)
-                throw new IllegalArgumentError("points at index " + i +
+            if (!initialPoints[i].vector)
+                throw new IllegalArgumentError("point at index " + i +
                   " did not have vector array with at least 1 length");
 
+            if (initialPoints[i].vector.length !== dimension)
+                throw new IllegalArgumentError(`point ${JSON.stringify(initialPoints[i])} at index ${i} had vector with 
+                dimension ${initialPoints[i].vector.length} which did not match required dimension ${dimension}`)
 
             if (initialPoints[i].type === undefined)
                 throw new IllegalArgumentError("type of points at index " + i + " was not set");

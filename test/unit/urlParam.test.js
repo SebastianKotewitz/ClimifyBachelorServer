@@ -21,7 +21,6 @@ describe('Validation of url id parameter', () => {
 
         assert(res.status.calledWith(400));
         assert(res.send.calledOnce);
-        assert(res.send.calledWith('Hej'));
 
     });
 
