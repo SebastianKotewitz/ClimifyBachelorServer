@@ -88,7 +88,7 @@ function estimateNearestNeighbors(clientBeacons, signalMaps, k) {
     const initialPoints = [];
     for (let i = 0; i < signalMaps.length; i++) {
         for (let j = 0; j < signalMaps[i].beacons[0].signals.length; j++) {
-            initialPoints.push({type: })
+
         }
     }
     const dimension = clientBeacons.length;
