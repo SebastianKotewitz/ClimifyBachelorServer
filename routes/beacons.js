@@ -36,7 +36,7 @@ router.delete("/:id", async (req, res) => {
 });
 
 router.get('/', auth, async (req, res) => {
-    const beacons = await Beacon.find();
+    const beacons = await Beacon.find().populate("building");
     res.send(beacons);
 });
 
