@@ -20,6 +20,8 @@ const createSignalMap = async (req, res) => {
         if (!buildingId) res.status(400).send("Please provide either roomId or buildingId");
 
         let signalMaps = await SignalMap.find({isActive: true});
+        if (!signalMaps) return res.status(400).send("Unable to estimate room when no active signalMaps " +
+          "was found in database");
 
         for (let i = 0; i < signalMaps.length; i++) {
             const room = await Room.findById(signalMaps[i].room);
