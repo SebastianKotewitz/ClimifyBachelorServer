@@ -358,6 +358,11 @@ describe('/api/signalMaps', () => {
             expect(res.body.room.toString()).to.equal(roooom);
         });
 
+        it("Should return 400 if no signalmap was posted an a room estimation was requested", async () => {
+            await SignalMap.deleteMany();
+            roomId = undefined;
+            await expect(exec()).to.be.rejectedWith("Bad Request");
+        });
 
     });
 
