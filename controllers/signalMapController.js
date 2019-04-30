@@ -30,7 +30,16 @@ const createSignalMap = async (req, res) => {
                 i--;
             }
         }
-        estimatedRoomId = await estimateNearestNeighbors(beacons, signalMaps, 3);
+        const serverBeacons = await Beacon.find({building: buildingId});
+        if (!serverBeacons || serverBeacons.length <= 0)
+            return res.status(400).send("Was unable to find beacon with building id " + buildingId);
+
+        const beaconIds = [];
+        for (let i = 0; i < serverBeacons.length; i++) {
+            beaconIds.push(serverBeacons[i]._id);
+        }
+        console.log("bids", beaconIds);
+        estimatedRoomId = await estimateNearestNeighbors(beacons, signalMaps, 3, beaconIds);
     } else {
         const signalMap = await SignalMap.findOne({room: roomId});
         if(signalMap)

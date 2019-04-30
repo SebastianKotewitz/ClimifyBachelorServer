@@ -19,7 +19,7 @@ module.exports = class KnnManager {
 
             if (initialPoints[i].vector.length !== dimension)
                 throw new IllegalArgumentError(`point ${JSON.stringify(initialPoints[i])} at index ${i} had vector with 
-                dimension ${initialPoints[i].vector.length} which did not match required dimension ${dimension}`)
+                dimension ${initialPoints[i].vector.length} which did not match required dimension ${dimension}`);
 
             if (initialPoints[i].type === undefined)
                 throw new IllegalArgumentError("type of points at index " + i + " was not set");
@@ -40,6 +40,7 @@ module.exports = class KnnManager {
         if (newPoint.type !== undefined)
             throw new IllegalArgumentError("New point should not have a type");
 
+        console.log(newPoint);
         let nearestPoints = this.nearestNeighbors(newPoint, this.points, this.k);
 
         let typeCounterMap = this.typeCountMap(nearestPoints);
@@ -147,7 +148,9 @@ module.exports = class KnnManager {
     checkDimension(points) {
         for (let i = 0; i < points.length; i++) {
             if (!points[i].vector || points[i].vector.length !== this.dimension)
-                throw new IllegalArgumentError("Point with type " + points[i].type + " did not have proper dimension")
+                throw new IllegalArgumentError("Point " + JSON.stringify(points[i])
+                  + " with vector length " + points[i].vector.length
+                  + " did not have required dimension " + this.dimension)
         }
     }
 

@@ -92,12 +92,15 @@ describe('/api/signalMaps', () => {
 
         it("Should not throw error", async () => {
 
-            let room = new Room({building: mongoose.Types.ObjectId(), name: "hej"});
-            let room2 = new Room({building: mongoose.Types.ObjectId(), name: "hej2"});
+            const building = new Building({name: "heeej"});
+            await building.save();
+
+            let room = new Room({building: building.id, name: "hej"});
+            let room2 = new Room({building: building.id, name: "hej2"});
             await room.save();
             await room2.save();
-            let beacon = new Beacon({name: "hej", building: buildingId, uuid: "f7826da6-4fa2-4e98-8024-bc5b71e0893b"});
-            let beacon2 = new Beacon({name: "hej", building: buildingId, uuid: "f7826da6-4fa2-4e98-8024-bc5b71e0893b"});
+            let beacon = new Beacon({name: "hej", building: building.id, uuid: "f7826da6-4fa2-4e98-8024-bc5b71e0893b"});
+            let beacon2 = new Beacon({name: "hej", building: building.id, uuid: "f7826da6-4fa2-4e98-8024-bc5b71e0893b"});
             await beacon.save();
             await beacon2.save();
 
@@ -150,7 +153,7 @@ describe('/api/signalMaps', () => {
 
 
             const requestFromChril = {
-                buildingId: room.building,
+                buildingId: building.id,
                 beacons: [
                     {beaconId: beacon.id, signals: [-62]}, {
                         beaconId: beacon2.id,

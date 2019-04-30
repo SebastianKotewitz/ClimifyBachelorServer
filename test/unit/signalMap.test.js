@@ -1,5 +1,5 @@
 const {
-    estimateNearestNeighbors, alignedClientBeacons,
+    estimateNearestNeighbors, alignAndFillArrays,
     updateNearestNeighbors, findIndexOfMaxDistanceNeighbor,
     roomOfMostNeighbors
 } = require('../../models/signalMap');
@@ -9,6 +9,7 @@ chai.use(require('chai-as-promised'));
 const mongoose = require('mongoose');
 const Joi = require('joi');
 Joi.objectId = require('joi-objectid')(Joi);
+const IllegalArgumentError = require("../../errors/IllegalArgumentError");
 
 
 describe('Location estimation algorithm', () => {
@@ -20,13 +21,15 @@ describe('Location estimation algorithm', () => {
     let signalMap2;
     let signalMap3;
     let k;
+    let beaconIds;
 
     const exec = () => {
-        return estimateNearestNeighbors(registeredBeacons, signalMaps, k)
+        return estimateNearestNeighbors(registeredBeacons, signalMaps, k, beaconIds)
     };
 
     describe("Estimate room", () => {
         beforeEach(() => {
+
             k = 3;
             registeredBeacons = [{
                 beaconId: mongoose.Types.ObjectId(),
@@ -79,6 +82,7 @@ describe('Location estimation algorithm', () => {
                 room: mongoose.Types.ObjectId()
             };
 
+            beaconIds = [registeredBeacons[0].beaconId, registeredBeacons[1].beaconId];
             signalMaps = [signalMap1, signalMap2, signalMap3]
         });
 
@@ -165,34 +169,6 @@ describe('Location estimation algorithm', () => {
         });
 
         it("Should not throw ", () => {
-
-
-            /*signalMaps = [
-                {
-                    isActive: true,
-                    _id: "5cc6d646032e5567cf4e31aa",
-                    room: "5cc6cd0e785ba2674dbc7482",
-                    beacons: [
-                        {
-                            signals: [
-                                -73,
-                                -69.5,
-                                -67
-                            ],
-                            _id: "5cc6d646032e5567cf4e31ac"
-                        },
-                        {
-                            signals: [
-                                -64,
-                                -70
-                            ],
-                            _id: "5cc6d646032e5567cf4e31ab"
-                        }
-                    ],
-                    __v: 0
-                }
-            ];*/
-
             signalMaps = [{
                 isActive: true,
                 _id: "5cc6ec3eaf4f896906f43f0d",
@@ -213,8 +189,6 @@ describe('Location estimation algorithm', () => {
             const res = exec();
             expect(res).to.equal("5cc6cd0e785ba2674dbc7482")
         });
-
-
     });
 
     describe("update nearest neighbors", () => {
@@ -366,27 +340,21 @@ describe('Location estimation algorithm', () => {
 
     });
 
-    describe('align arrays', () => {
+    describe('align and fill arrays', () => {
 
-        let serverBeacons;
-        let clientBeacons;
-
+        let alignedBeaconIds;
+        let unAlignedBeacons;
+        let id1;
+        let id2;
+        let id3;
         beforeEach(() => {
-            let id1 = mongoose.Types.ObjectId();
-            let id2 = mongoose.Types.ObjectId();
+            id1 = mongoose.Types.ObjectId();
+            id2 = mongoose.Types.ObjectId();
+            id3 = mongoose.Types.ObjectId();
 
-            serverBeacons = [
-                {
-                    _id: id1,
-                    signals: []
-                },
-                {
-                    _id: id2,
-                    signals: []
-                }
-            ];
+            alignedBeaconIds = [id1, id2];
 
-            clientBeacons = [
+            unAlignedBeacons = [
                 {
                     beaconId: id2,
                     signals: []
@@ -399,15 +367,71 @@ describe('Location estimation algorithm', () => {
         });
 
         const exec = () => {
-            return alignedClientBeacons(serverBeacons, clientBeacons);
+            return alignAndFillArrays(alignedBeaconIds, unAlignedBeacons);
         };
 
 
         it("should return aligned beacons array", () => {
 
             const aligned = exec();
-            expect(aligned[0].beaconId).to.equal(serverBeacons[0]._id);
+
+            expect(aligned[0].beaconId).to.equal(alignedBeaconIds[0]);
+            expect(aligned[1].beaconId).to.equal(alignedBeaconIds[1]);
+        });
+
+        it("Should return aligned beacon array with array length 3", () => {
+
+            unAlignedBeacons = [
+                {
+                    beaconId: id3,
+                    signals: []
+                },
+                {
+                    beaconId: id1,
+                    signals: []
+                }, {
+                    beaconId: id2,
+                    signals: []
+                }
+            ];
+
+            alignedBeaconIds = [id1, id2, id3];
+
+            const aligned = exec();
+            expect(aligned[2].beaconId).to.equal(alignedBeaconIds[2]);
+        });
+
+        it("Should fill array with -100 if an item wasn't in beacon id", () => {
+            let id4 = mongoose.Types.ObjectId();
+            unAlignedBeacons = [
+                {
+                    beaconId: id3,
+                    signals: [-10]
+                },
+                {
+                    beaconId: id1,
+                    signals: [-20]
+                }, {
+                    beaconId: id4,
+                    signals: [-30]
+                }
+            ];
+
+            alignedBeaconIds = [id1, id2, id3, id4];
+            const res = exec();
+            expect(res[1].signals[0]).to.equal(-100);
+        });
+
+        it("Should throw if unaligned is not at least one length array ", () => {
+            unAlignedBeacons = [];
+            expect(exec).to.throw(TypeError);
+        });
+
+        it("Should throw if beaconIds empty", () => {
+            alignedBeaconIds = [];
+            expect(exec).to.throw(IllegalArgumentError);
         });
     });
+
 
 });

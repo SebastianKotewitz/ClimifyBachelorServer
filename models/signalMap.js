@@ -1,6 +1,7 @@
 const mongoose = require('mongoose');
 const Joi = require('joi');
 const KnnManager = require("./knnManager");
+const IllegalArgumentError = require("../errors/IllegalArgumentError");
 
 const signalMapSchema = new mongoose.Schema({
     beacons: {
@@ -22,21 +23,34 @@ const signalMapSchema = new mongoose.Schema({
     }
 });
 
-function alignedClientBeacons(serverBeacons, clientBeacons, ) {
+function alignAndFillArrays(alignedBeaconIds, unAlignedBeacons) {
 
-    const alignedBeacons = new Array(serverBeacons.length);
+    if (!alignedBeaconIds || alignedBeaconIds.length <=0)
+        throw new IllegalArgumentError("alignedBeaconIds should be at least one-length array");
+    const alignedBeacons = new Array(alignedBeaconIds.length);
+    console.log("unaligned", unAlignedBeacons);
+    console.log("unaligned", unAlignedBeacons[0]);
+    const signalLength = unAlignedBeacons[0].signals.length;
 
-    console.log('server: ', serverBeacons);
-    console.log('client: ', clientBeacons);
-
-    for (let i = 0; i < clientBeacons.length; i++) {
-        const index = serverBeacons.findIndex(beacon => beacon._id.toString() === clientBeacons[i].beaconId.toString());
-        alignedBeacons[index] = clientBeacons[i];
+    console.log(unAlignedBeacons);
+    for (let i = 0; i < alignedBeaconIds.length; i++) {
+        const beacon = unAlignedBeacons
+          .find(beacon => {
+              if (beacon.beaconId) {
+                  return beacon.beaconId.toString() === alignedBeaconIds[i].toString()
+              }
+              return beacon._id.toString() === alignedBeaconIds[i].toString()
+          });
+        if (!beacon) {
+            alignedBeacons[i] = {
+                beaconId: alignedBeaconIds[i],
+                signals: new Array(signalLength).fill(-100)
+            };
+            alignedBeacons[i].signals.fill(-100)
+        } else {
+            alignedBeacons[i] = beacon;
+        }
     }
-
-
-    console.log('alignedBeacons: ', alignedBeacons);
-
     return alignedBeacons;
 }
 
@@ -80,33 +94,41 @@ function maxSignalsAmount(signalMap) {
     return maxSignalsAmount;
 }
 
-function estimateNearestNeighbors(clientBeacons, signalMaps, k) {
+function estimateNearestNeighbors(clientBeacons, signalMaps, k, beaconIds) {
 
     if (!k)
         k = 3;
 
+    console.log('signalmaps: ', signalMaps);
+    console.log('clientb: ', clientBeacons);
+    console.log("idds", beaconIds);
+
     const initialPoints = [];
     for (let i = 0; i < signalMaps.length; i++) {
-        for (let j = 0; j < signalMaps[i].beacons[0].signals.length; j++) {
+        const alignedServerBeacons = alignAndFillArrays(beaconIds, signalMaps[i].beacons);
+        console.log("hej", alignedServerBeacons);
+        for (let j = 0; j < alignedServerBeacons[0].signals.length; j++) {
             const vector = [];
-            for (let l = 0; l < signalMaps[i].beacons.length; l++) {
+            for (let l = 0; l < alignedServerBeacons.length; l++) {
                 vector.push(
-                    signalMaps[i].beacons[l].signals[j]
+                  alignedServerBeacons[l].signals[j]
                 )
             }
             initialPoints.push({vector, type: signalMaps[i].room.toString()})
         }
     }
 
+
     if (initialPoints.length < k)
         k = initialPoints.length;
 
-    const dimension = clientBeacons.length;
+    const dimension = beaconIds.length;
     const knnManager = new KnnManager(dimension, initialPoints, k);
 
     const newPointVector = [];
-    for (let i = 0; i < clientBeacons.length; i++) {
-        newPointVector.push(clientBeacons[i].signals[0]);
+    const alignedClientBeacons = alignAndFillArrays(beaconIds, clientBeacons);
+    for (let i = 0; i < alignedClientBeacons.length; i++) {
+        newPointVector.push(alignedClientBeacons[i].signals[0]);
     }
     const newPoint = {
         vector: newPointVector
@@ -216,7 +238,7 @@ exports.SignalMap = SignalMap;
 exports.validate = validateSignalMap;
 exports.signalMapSchema = signalMapSchema;
 exports.estimateNearestNeighbors = estimateNearestNeighbors;
-exports.alignedClientBeacons = alignedClientBeacons;
+exports.alignAndFillArrays = alignAndFillArrays;
 exports.updateNearestNeighbors = updateNearestNeighbors;
 exports.findIndexOfMaxDistanceNeighbor = findIndexOfMaxDistanceNeighbor;
 exports.roomOfMostNeighbors = roomOfMostNeighbors;
