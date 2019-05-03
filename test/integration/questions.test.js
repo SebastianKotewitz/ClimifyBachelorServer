@@ -75,7 +75,7 @@ describe('/api/questions', () => {
             await answerOption2.save();
             const question = new Question({
                 value: "12345",
-                room: roomId,
+                rooms: [roomId],
                 answerOptions: [answerOption1, answerOption2]
             });
 
@@ -127,7 +127,7 @@ describe('/api/questions', () => {
 
         it('should return question object with roomId field', async () => {
             const res = await exec();
-            assert.strictEqual(res.body[0].room, roomId.toString());
+            assert.strictEqual(res.body[0].rooms[0], roomId.toString());
         });
 
         it('should only return questions from detected room/building', async () => {
@@ -140,7 +140,7 @@ describe('/api/questions', () => {
 
             const question2 = new Question({
                 value: "12345",
-                room: room2._id,
+                rooms: [room2.id],
                 answerOptions: [{
                     _id: mongoose.Types.ObjectId(),
                     value: "hej"
@@ -155,7 +155,6 @@ describe('/api/questions', () => {
             const res = await exec();
             assert.strictEqual(res.body.length, 1);
         });
-
 
 
         it("Should return answer options", async () => {
@@ -204,7 +203,7 @@ describe('/api/questions', () => {
 
             const question = new Question({
                 value: "12345",
-                room: roomId,
+                rooms: [roomId],
                 answerOptions: [{
                     value: "123",
                     _id: mongoose.Types.ObjectId()
@@ -220,7 +219,7 @@ describe('/api/questions', () => {
         it("Should only return active questions", async () => {
             const question2 = new Question({
                 value: "12345",
-                room: roomId,
+                rooms: [roomId],
                 isActive: false,
                 answerOptions: [{
                     value: "123",
@@ -248,6 +247,7 @@ describe('/api/questions', () => {
         let token;
         let answerOptions;
         let isActive;
+        let rooms;
 
         beforeEach(async () => {
             value = '12345';
@@ -259,7 +259,7 @@ describe('/api/questions', () => {
             await room.save();
             roomId = room._id;
             user.role = 1;
-
+            rooms = [roomId];
             answerOptions = ["Too hot", "Too cold"];
 
             token = user.generateAuthToken();
@@ -270,7 +270,7 @@ describe('/api/questions', () => {
             return request(server)
               .post(url)
               .set('x-auth-token', token)
-              .send({roomId, value, answerOptions});
+              .send({rooms, value, answerOptions});
         };
 
         it('400 if token not provided', async () => {
@@ -292,17 +292,36 @@ describe('/api/questions', () => {
         });
 
         it('400 if roomId not provided', async () => {
-            roomId = null;
+            rooms = [null];
             await expect(exec()).to.be.rejectedWith("Bad Request");
         });
 
         it('400 if roomId not valid', async () => {
-            roomId = '12345';
+            rooms = ['12345'];
+            await expect(exec()).to.be.rejectedWith("Bad Request");
+        });
+
+        it("400 if question posted in rooms of different buildings", async () => {
+
+            const building = await new Building({
+                name: "heej"
+            }).save();
+
+            user.adminOnBuildings.push(building.id);
+            user.role = 1;
+            token = user.generateAuthToken();
+            await user.save();
+            const room = await new Room({
+                building: building.id,
+                name: "hej"
+            }).save();
+
+            rooms = [roomId, room.id];
             await expect(exec()).to.be.rejectedWith("Bad Request");
         });
 
         it('404 if roomId not found', async () => {
-            roomId = mongoose.Types.ObjectId();
+            rooms = [mongoose.Types.ObjectId()];
             await expect(exec()).to.be.rejectedWith("Not Found");
         });
 
@@ -336,7 +355,7 @@ describe('/api/questions', () => {
 
         it('should return question object with proper room id', async () => {
             const res = await exec();
-            assert.strictEqual(res.body.room, roomId.toString());
+            assert.strictEqual(res.body.rooms[0], roomId.toString());
         });
 
         it('should only return 1 length array when posted question for two different rooms', async () => {
@@ -355,7 +374,7 @@ describe('/api/questions', () => {
             await request(server)
               .post(url)
               .set('x-auth-token', user.generateAuthToken())
-              .send({roomId: roomId, value: '12345', answerOptions: ["hej", "hej2"]});
+              .send({rooms: [roomId], value: '12345', answerOptions: ["hej", "hej2"]});
 
             user.adminOnBuildings.push(building2.id);
             await user.save();
@@ -363,7 +382,7 @@ describe('/api/questions', () => {
             await request(server)
               .post(url)
               .set('x-auth-token', user.generateAuthToken())
-              .send({roomId: room2.id, value: '12345', answerOptions: ["hej", "hej2"]});
+              .send({rooms: [room2.id], value: '12345', answerOptions: ["hej", "hej2"]});
 
             const res = await request(server)
               .get(url)
@@ -388,6 +407,8 @@ describe('/api/questions', () => {
             const res = await exec();
             expect(res.body.answerOptions[0].value).to.equal("hej hej");
         });
+
+
     });
 
     describe("PATCH /:id change isActive of question", () => {
@@ -425,7 +446,7 @@ describe('/api/questions', () => {
 
             const question = new Question({
                 value: "12345",
-                room: roomId,
+                rooms: [roomId],
                 isActive: false,
                 answerOptions: [{
                     value: "123",
@@ -451,9 +472,6 @@ describe('/api/questions', () => {
             const res = await exec();
             expect(res.body.isActive).to.be.true;
         });
-
-
     });
-
 
 });

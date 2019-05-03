@@ -9,11 +9,6 @@ const answerSchema = new mongoose.Schema({
     trim: true,
     required: true
   },
-  /*question: {
-    type: mongoose.Types.ObjectId,
-    required: true,
-    ref: "Question"
-  }*/
 });
 
 const Answer = mongoose.model('Answer', answerSchema);

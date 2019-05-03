@@ -8,6 +8,7 @@ const app = require('../..');
 const config = require('config');
 const chai = require("chai");
 const chaiAsPromised = require("chai-as-promised");
+const {Question} = require("../../models/question");
 chai.use(chaiAsPromised);
 const expect = require("chai").expect;
 let server;
@@ -28,7 +29,7 @@ describe('/api/buildings', () => {
         user = new User();
         await user.save();
     });
-    afterEach( async () => {
+    afterEach(async () => {
         await User.deleteMany();
         await Building.deleteMany();
         await Room.deleteMany();
@@ -42,9 +43,9 @@ describe('/api/buildings', () => {
 
         const exec = () => {
             return request(server)
-                .post('/api/buildings')
-                .set('x-auth-token', token)
-                .send({name: buildingName});
+              .post('/api/buildings')
+              .set('x-auth-token', token)
+              .send({name: buildingName});
         };
 
 
@@ -114,6 +115,75 @@ describe('/api/buildings', () => {
             await exec();
             const buildings = await Building.find();
             expect(buildings.length).to.equal(0);
+        });
+
+        it("Should also delete all rooms in that building", async () => {
+            const room = await new Room({
+                name: "324",
+                building: buildingId
+            }).save();
+
+            await exec();
+            const result = await Room.findById(room.id);
+            expect(result).to.not.be.ok
+        });
+        it("Should delete reference to room for questions posted in that building", async () => {
+
+            const room = await new Room({
+                name: "324",
+                building: buildingId
+            }).save();
+            const question = await new Question({
+                value: "whats up",
+                answerOptions: [{
+                    value: "not much",
+                    _id: mongoose.Types.ObjectId()
+                }
+                    , {
+                        _id: mongoose.Types.ObjectId(),
+                        value: "I'm fine, thanks"
+                    }],
+                rooms: [room.id]
+            }).save();
+
+            await exec();
+            const result = await Question.findById(question.id);
+            expect(result).to.not.be.ok;
+        });
+
+        it("Should not delete questions posted in other buildings", async () => {
+
+            const room = await new Room({
+                name: "324",
+                building: mongoose.Types.ObjectId()
+            }).save();
+            const question = await new Question({
+                value: "whats up",
+                answerOptions: [{
+                    value: "not much",
+                    _id: mongoose.Types.ObjectId()
+                }
+                    , {
+                        _id: mongoose.Types.ObjectId(),
+                        value: "I'm fine, thanks"
+                    }],
+                rooms: [room.id]
+            }).save();
+
+            await exec();
+            const result = await Question.findById(question.id);
+            expect(result).to.be.ok;
+        });
+
+        it("Should still have room that does not belong to the deleted building", async () => {
+            const room = await new Room({
+                name: "324",
+                building: mongoose.Types.ObjectId()
+            }).save();
+
+            await exec();
+            const result = await Room.findById(room.id);
+            expect(result).to.be.ok
         });
 
         it("Should return 403 if user was not admin on the building", async () => {
@@ -189,7 +259,6 @@ describe('/api/buildings', () => {
             const res = await exec();
             expect(res.body[0].rooms[0]._id).to.equal(roomId);
         });
-
 
 
         it("Should return array with rooms", async () => {

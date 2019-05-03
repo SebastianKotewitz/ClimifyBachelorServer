@@ -1,6 +1,7 @@
 const {User} = require('../../models/user');
 const {Building} = require('../../models/building');
 const {Room} = require('../../models/room');
+const {Question} = require('../../models/question');
 const request = require('supertest');
 let assert = require('assert');
 const app = require('../..');
@@ -34,6 +35,7 @@ describe('/api/rooms', () => {
         await User.deleteMany();
         await Room.deleteMany();
         await Building.deleteMany();
+        await Question.deleteMany();
     });
 
 
@@ -47,9 +49,9 @@ describe('/api/rooms', () => {
 
         const exec = () => {
             return request(server)
-                .post('/api/rooms')
-                .set("x-auth-token", token)
-                .send({buildingId: building._id, name});
+              .post('/api/rooms')
+              .set("x-auth-token", token)
+              .send({buildingId: building._id, name});
         };
 
         beforeEach(async () => {
@@ -159,8 +161,8 @@ describe('/api/rooms', () => {
         });
         const exec = () => {
             return request(server)
-                .get('/api/rooms')
-                .set('x-auth-token', token);
+              .get('/api/rooms')
+              .set('x-auth-token', token);
         };
 
 
@@ -175,6 +177,74 @@ describe('/api/rooms', () => {
                 logger.error(e);
                 throw e;
             }
+        });
+
+    });
+
+    describe("DELETE /:id", () => {
+        let roomId;
+        let token;
+
+        beforeEach(async () => {
+            const room = await new Room({
+                name: "324",
+                building: mongoose.Types.ObjectId()
+            }).save();
+            roomId = room.id;
+            user.role = 1;
+            user.adminOnBuildings.push(room.building);
+            await user.save();
+            token = user.generateAuthToken();
+
+        });
+        const exec = () => {
+            return request(server)
+              .delete("/api/rooms/" + roomId)
+              .set("x-auth-token", token)
+        };
+
+        it("Should return array of length 0 when room deleted", async () => {
+            await exec();
+            const res = await Room.find();
+            expect(res.length).to.equal(0);
+        });
+
+        it("403 if user was not admin on building where room exists", async () => {
+            user.adminOnBuildings = [];
+            await user.save();
+            token = user.generateAuthToken();
+            await expect(exec()).to.be.rejectedWith("Forbidden");
+        });
+
+        it("Should delete questions that have only reference to deleted room", async () => {
+            await new Question({
+                value: "hej",
+                rooms: roomId,
+                answerOptions: [{value: "hej", _id: mongoose.Types.ObjectId()}, {
+                    value: "hej",
+                    _id: mongoose.Types.ObjectId()
+                }]
+            }).save();
+
+            await exec();
+            const res = await Question.find();
+            expect(res.length).to.equal(0);
+
+        });
+
+        it("Should not delete references to other rooms", async () => {
+            const question = await new Question({
+                value: "hej",
+                rooms: [roomId, mongoose.Types.ObjectId()],
+                answerOptions: [{value: "hej", _id: mongoose.Types.ObjectId()}, {
+                    value: "hej",
+                    _id: mongoose.Types.ObjectId()
+                }]
+            }).save();
+
+            await exec();
+            const res = await Question.findById(question.id);
+            expect(res.rooms.find(elem => elem.toString() === question.rooms[1].toString())).to.be.ok;
         });
 
     });

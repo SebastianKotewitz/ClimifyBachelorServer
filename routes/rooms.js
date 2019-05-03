@@ -3,6 +3,9 @@ const {Room, validate} = require('../models/room');
 const {Building} = require('../models/building');
 const _ = require('lodash');
 const {auth, authorized} = require("../middleware/auth");
+const validId = require("../middleware/validateIdParam");
+const questionsController = require("../controllers/questionController");
+const roomController = require("../controllers/roomController");
 const router = express.Router();
 
 router.post('/', [auth, authorized], async (req, res) => {
@@ -35,5 +38,7 @@ router.get("/fromBuilding/:id", auth, async (req, res) => {
     const rooms = await Room.find({building: req.params.id});
     res.send(rooms);
 });
+
+router.delete("/:id", [auth, validId], roomController.deleteRoom)
 
 module.exports = router;

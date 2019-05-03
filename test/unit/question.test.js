@@ -13,7 +13,7 @@ describe('Question Validation', () => {
         let question;
         beforeEach(() => {
             question = new Question();
-            question.room = mongoose.Types.ObjectId();
+            question.rooms = [mongoose.Types.ObjectId()];
             question.value = "how is the weather?";
             question.answerOptions = [
                 {
@@ -25,10 +25,21 @@ describe('Question Validation', () => {
                 }];
         });
 
-        it("should have a room", async () => {
-            question.room = null;
+        it("Should have valid room ids", async () => {
+            question.rooms = ["123"];
             await expect(question.validate()).to.be.rejectedWith(mongoose.ValidationError);
         });
+
+        it("should have an array of rooms", async () => {
+            question.rooms = null;
+            await expect(question.validate()).to.be.rejectedWith(mongoose.ValidationError);
+        });
+
+        it("Should have an array with at least one room", async () => {
+            question.rooms = [];
+            await expect(question.validate()).to.be.rejectedWith(mongoose.ValidationError);
+        });
+
         it('should have a value', async () => {
             question.value = null;
             await expect(question.validate()).to.be.rejectedWith(mongoose.ValidationError);
@@ -68,7 +79,7 @@ describe('Question Validation', () => {
         let value;
 
         const exec = () => {
-            return validate({answerOptions, roomId, value});
+            return validate({answerOptions, rooms: [roomId], value});
         };
 
         beforeEach(() => {
