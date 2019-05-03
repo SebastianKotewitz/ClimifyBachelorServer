@@ -190,6 +190,8 @@ describe('/api/buildings', () => {
             expect(res.body[0].rooms[0]._id).to.equal(roomId);
         });
 
+
+
         it("Should return array with rooms", async () => {
             let room2 = new Room({name: "hej", location: "hej", building: buildingId});
             let room3 = new Room({name: "hej", location: "hej", building: mongoose.Types.ObjectId()});

@@ -531,7 +531,7 @@ describe('/api/signalMaps', () => {
 
         it("Should have reference to room", async () => {
             const res = await exec();
-            expect(res.body.room).to.equal(roomId.toString());
+            expect(res.body.room._id).to.equal(roomId.toString());
         });
 
         it("Should return 400 if one of the beacons doesn't exist in the system", async () => {
@@ -589,7 +589,7 @@ describe('/api/signalMaps', () => {
             await signalMap.save();
             roomId = undefined;
             const res = await exec();
-            expect(res.body.room).to.equal(signalMap.room.toString());
+            expect(res.body.room._id).to.equal(signalMap.room.toString());
         });
 
         it("Should estimate correct room when nearest neighbor is a tie", async () => {
@@ -644,7 +644,7 @@ describe('/api/signalMaps', () => {
             let roooom = roomId;
             roomId = undefined;
             const res = await exec();
-            expect(res.body.room.toString()).to.equal(roooom);
+            expect(res.body.room._id.toString()).to.equal(roooom);
         });
 
         it("Should not throw error if beacon was in client beacons array but not in servermap", async () => {
@@ -707,7 +707,7 @@ describe('/api/signalMaps', () => {
             let roooom = roomId;
             roomId = undefined;
             const res = await exec();
-            expect(res.body.room.toString()).to.equal(roooom);
+            expect(res.body.room._id.toString()).to.equal(roooom);
         });
 
         it("Should return 400 if no signalmap was posted an a room estimation was requested", async () => {

@@ -1,5 +1,6 @@
 const {User} = require('../../models/user');
 const {Building} = require('../../models/building');
+const {Beacon} = require('../../models/beacon');
 const request = require('supertest');
 const chai = require("chai");
 const chaiAsPromised = require("chai-as-promised");
@@ -41,6 +42,7 @@ describe('/api/beacons', () => {
     afterEach(async () => {
         await User.deleteMany();
         await Building.deleteMany();
+        await Beacon.deleteMany();
     });
 
 
@@ -91,4 +93,49 @@ describe('/api/beacons', () => {
             expect(res.status).to.equal(200);
         });
     });
+
+    describe("GET /", () => {
+
+        let buildingId;
+        let name;
+        let uuid;
+        let query;
+
+
+        const exec = () => {
+            return request(server)
+              .get('/api/beacons/' + query)
+              .set("x-auth-token", token);
+        };
+
+        beforeEach(async () => {
+            token = user.generateAuthToken();
+            uuid = "vsk1vs12-vsk1-sk12-vk12-vk12vk12vk12";
+            buildingId = building.id;
+
+            name = "beacon1";
+            query = "";
+            const beacon = new Beacon({
+                name,
+                uuid,
+                building: buildingId
+            });
+            await beacon.save();
+
+        });
+
+        it("Should filter for building if query string parameter parsed", async () => {
+            await new Beacon({
+                building: mongoose.Types.ObjectId(),
+                name: "beacon2",
+                uuid: uuid
+            }).save();
+
+            query = "?building=" + buildingId;
+            const res = await exec();
+            console.log(res.body);
+            expect(res.body.length).to.equal(1);
+        });
+    });
+
 });
