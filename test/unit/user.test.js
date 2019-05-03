@@ -1,4 +1,4 @@
-const {User, validate} = require('../../models/user');
+const {User, validate, validateAuthorized} = require('../../models/user');
 const chai = require('chai');
 const expect = chai.expect;
 chai.use(require('chai-as-promised'));
@@ -40,7 +40,7 @@ describe("User", () => {
     describe("Basic user posted from client", () => {
         let user;
 
-        beforeEach(async () => {
+        beforeEach( () => {
             user = {};
         });
 
@@ -64,6 +64,47 @@ describe("User", () => {
             user.authorized = true;
             const {error} = exec();
             expect(error.name).to.equal("ValidationError");
+        });
+
+
+    });
+
+    describe("Validate authorized user", () => {
+
+        let user;
+        let password;
+        let email;
+
+        beforeEach( () => {
+            password = "qweQWE123";
+            email = "s@s";
+            user = {
+                email,
+                password
+            };
+        });
+
+        const exec = () => {
+            return validateAuthorized({email, password})
+        };
+
+        it("Should not return password in error message", async () => {
+            password = "123";
+            // const hej = await exec();
+            await expect(exec()).to.be.rejectedWith(Error);
+            // expect(error.includes("123")).to.be.false;
+        });
+
+        it("Should accept valid password", () => {
+            const {error} = exec();
+            expect(error).to.not.be.ok;
+        });
+
+        it("Should not accept invalid emails", () => {
+            email = "123";
+            const {error} = exec();
+            console.log("error", error.message);
+            expect(error).to.be.ok;
         });
     });
 

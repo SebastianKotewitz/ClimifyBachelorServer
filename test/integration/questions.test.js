@@ -76,7 +76,7 @@ describe('/api/questions', () => {
             const question = new Question({
                 value: "12345",
                 room: roomId,
-                answerOptions: [answerOption1.id, answerOption2.id]
+                answerOptions: [answerOption1, answerOption2]
             });
 
             await question.save();
@@ -141,7 +141,13 @@ describe('/api/questions', () => {
             const question2 = new Question({
                 value: "12345",
                 room: room2._id,
-                answerOptions: [mongoose.Types.ObjectId(), mongoose.Types.ObjectId()]
+                answerOptions: [{
+                    _id: mongoose.Types.ObjectId(),
+                    value: "hej"
+                }, {
+                    _id: mongoose.Types.ObjectId(),
+                    value: "hej2"
+                }]
             });
 
             await question2.save();
@@ -149,6 +155,8 @@ describe('/api/questions', () => {
             const res = await exec();
             assert.strictEqual(res.body.length, 1);
         });
+
+
 
         it("Should return answer options", async () => {
             const res = await exec();
@@ -197,7 +205,13 @@ describe('/api/questions', () => {
             const question = new Question({
                 value: "12345",
                 room: roomId,
-                answerOptions: [mongoose.Types.ObjectId(), mongoose.Types.ObjectId()]
+                answerOptions: [{
+                    value: "123",
+                    _id: mongoose.Types.ObjectId()
+                }, {
+                    value: "1234",
+                    _id: mongoose.Types.ObjectId()
+                }]
             });
 
             await question.save();
@@ -208,7 +222,13 @@ describe('/api/questions', () => {
                 value: "12345",
                 room: roomId,
                 isActive: false,
-                answerOptions: [mongoose.Types.ObjectId(), mongoose.Types.ObjectId()]
+                answerOptions: [{
+                    value: "123",
+                    _id: mongoose.Types.ObjectId()
+                }, {
+                    value: "1234",
+                    _id: mongoose.Types.ObjectId()
+                }]
             });
 
             await question2.save();
@@ -357,6 +377,17 @@ describe('/api/questions', () => {
             expect(res.body.isActive).to.be.true;
         });
 
+        it("Should have answer options when question posted", async () => {
+            const res = await exec();
+            expect(res.body.answerOptions[0].value).to.equal(answerOptions[0]);
+            expect(res.body.answerOptions[1].value).to.equal(answerOptions[1]);
+        });
+
+        it("Should trim answerOptions", async () => {
+            answerOptions[0] = "       hej hej   ";
+            const res = await exec();
+            expect(res.body.answerOptions[0].value).to.equal("hej hej");
+        });
     });
 
     describe("PATCH /:id change isActive of question", () => {
@@ -396,7 +427,13 @@ describe('/api/questions', () => {
                 value: "12345",
                 room: roomId,
                 isActive: false,
-                answerOptions: [mongoose.Types.ObjectId(), mongoose.Types.ObjectId()]
+                answerOptions: [{
+                    value: "123",
+                    _id: mongoose.Types.ObjectId()
+                }, {
+                    value: "1234",
+                    _id: mongoose.Types.ObjectId()
+                }]
             });
 
             await question.save();
@@ -414,6 +451,7 @@ describe('/api/questions', () => {
             const res = await exec();
             expect(res.body.isActive).to.be.true;
         });
+
 
     });
 

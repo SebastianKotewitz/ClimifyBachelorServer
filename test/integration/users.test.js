@@ -96,7 +96,7 @@ describe('/api/users', () => {
 
             beforeEach(async () => {
                 email = "user1@gmail.com";
-                password = "Asdf1234";
+                password = "qweQWE123";
             });
 
             afterEach(async () => {
@@ -105,7 +105,12 @@ describe('/api/users', () => {
 
 
             it("Should create user with authorized role if valid email and password provided", async () => {
-                await exec();
+                try {
+                    await exec();
+                }catch (e) {
+                    console.log(e);
+                }
+
                 const user = await User.findOne({email});
 
                 assert.strictEqual(user.role, 1);

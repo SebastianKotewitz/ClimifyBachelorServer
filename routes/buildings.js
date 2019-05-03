@@ -13,9 +13,11 @@ const buildingController = require("../controllers/buildingController")
 
 router.post('/', [auth, authorized], async (req, res) => {
 
-    const {error} = validate(req.body);
-    console.log(req.body);
-    if (error) return res.status(400).send(error.details[0].message);
+    try {
+        await validate(req.body)
+    } catch (e) {
+        return res.status(400).send(e.message);
+    }
 
     let {name} = req.body;
     const user = req.user;
@@ -35,7 +37,11 @@ router.post('/', [auth, authorized], async (req, res) => {
 
 router.get("/:id", [auth, validId], async (req, res) => {
     const building = await Building.findById(req.params.id);
-    res.send(building);
+    if (!building) return res.status(404).send(`Building with id ${req.params.id} was not found`);
+    const newBuilding = _.pick(building, ["name", "_id"]);
+    newBuilding.rooms = await Room.find({building: building.id});
+
+    res.send(newBuilding);
 });
 
 router.get('/', auth, async (req, res) => {

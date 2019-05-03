@@ -1,4 +1,6 @@
 const mongoose = require('mongoose');
+const {answerSchema} = require("./answer");
+
 const Joi = require('joi');
 
 const questionSchema = new mongoose.Schema(
@@ -20,11 +22,12 @@ const questionSchema = new mongoose.Schema(
             default: true
         },
         answerOptions: {
-            type: [{
+            type: [answerSchema],
+            /*{
                 type: mongoose.Schema.ObjectId,
                 ref: "Answer",
                 required: true
-            }],
+            }*/
             required: true,
             validate: [(val) => val.length >= 2 && Array.isArray(val), "Question should have at least two answer options"]
         }

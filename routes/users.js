@@ -6,16 +6,26 @@ const bcrypt = require("bcrypt");
 
 router.post('/', async (req, res) => {
 
-    let error;
     let user;
 
     if (req.body.email) {
-        error = validateAuthorized(req.body);
+        let result;
+        try {
+            result = await validateAuthorized(req.body);
+        } catch (e) {
+            return res.status(400).send(e.message);
+        }
+        console.log("reeed", result);
+        // const {error} = validateAuthorized(req.body);
+        // if (error)
     } else {
-        error = validate(req.body);
+        try {
+            await validate(req.body);
+        } catch (e) {
+            return res.status(400).send(e.message);
+        }
     }
 
-    if (error.error) return res.status(400).send(error.error.details[0].message);
 
 
     if (req.body.email) {

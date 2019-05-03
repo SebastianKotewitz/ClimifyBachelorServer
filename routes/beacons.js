@@ -8,8 +8,12 @@ const {auth, authorized} = require("../middleware/auth");
 
 router.post('/', [auth, authorized], async (req, res) => {
 
-    const {error} = validate(req.body);
-    if (error) return res.status(400).send(error.details[0].message);
+    try {
+        await validate(req.body);
+    } catch (e) {
+        return res.status(400).send(e.message);
+    }
+
 
     console.log(req.user.role);
     if (req.user.role < 1) return res.status(403).send("Forbidden. User should be authorized");

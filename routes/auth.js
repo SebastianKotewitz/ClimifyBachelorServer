@@ -9,7 +9,7 @@ const FAIL_AUTH_TEXT = "Invalid email or password";
 router.post("/", async (req, res) => {
     const {error} = validateAuthorized(req.body);
 
-    if (error) return res.status(400).send(error.details[0].message);
+    if (error) return res.status(400).send(error.message);
 
     const {email, password} = req.body;
 

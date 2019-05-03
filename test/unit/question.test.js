@@ -14,8 +14,15 @@ describe('Question Validation', () => {
         beforeEach(() => {
             question = new Question();
             question.room = mongoose.Types.ObjectId();
-            question.value = "how is the weather?"
-            question.answerOptions = [mongoose.Types.ObjectId(), mongoose.Types.ObjectId()];
+            question.value = "how is the weather?";
+            question.answerOptions = [
+                {
+                    _id: mongoose.Types.ObjectId(),
+                    value: "Fine"
+                }, {
+                    _id: mongoose.Types.ObjectId(),
+                    value: "Too cold"
+                }];
         });
 
         it("should have a room", async () => {
@@ -70,7 +77,7 @@ describe('Question Validation', () => {
             value = "How is the weather?";
         });
 
-        it("Should be validated successfully if all parameters parsed",() => {
+        it("Should be validated successfully if all parameters parsed", () => {
             const {error} = exec();
             expect(error).to.not.be.ok;
         });

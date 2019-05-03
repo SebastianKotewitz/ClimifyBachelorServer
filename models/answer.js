@@ -6,6 +6,7 @@ const answerSchema = new mongoose.Schema({
     type: String,
     minLength: 1,
     maxLength: 1024,
+    trim: true,
     required: true
   },
   /*question: {
@@ -29,3 +30,4 @@ function validateAnswer(answer) {
 
 exports.Answer = Answer;
 exports.validate = validateAnswer;
+exports.answerSchema = answerSchema;

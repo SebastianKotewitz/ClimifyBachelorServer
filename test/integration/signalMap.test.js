@@ -100,7 +100,11 @@ describe('/api/signalMaps', () => {
             await room.save();
             await room2.save();
             let beacon = new Beacon({name: "hej", building: building.id, uuid: "f7826da6-4fa2-4e98-8024-bc5b71e0893b"});
-            let beacon2 = new Beacon({name: "hej", building: building.id, uuid: "f7826da6-4fa2-4e98-8024-bc5b71e0893b"});
+            let beacon2 = new Beacon({
+                name: "hej",
+                building: building.id,
+                uuid: "f7826da6-4fa2-4e98-8024-bc5b71e0893b"
+            });
             await beacon.save();
             await beacon2.save();
 
@@ -167,6 +171,351 @@ describe('/api/signalMaps', () => {
               .send(requestFromChril);
         });
 
+        it("Should not throw error either", async () => {
+            await SignalMap.deleteMany();
+            await Room.deleteMany();
+            await Building.deleteMany();
+            await Beacon.deleteMany();
+
+            buildingId = "5ca34d31ab35306b2610eb7b";
+
+            const rooms = [new Room({
+                name: "222",
+                building: buildingId,
+                _id: "5cc8565c7e14e27313a9ddba"
+            }), new Room({
+                name: "222",
+                building: buildingId,
+                _id: "5cc856907e14e27313a9ddc0"
+            }), new Room({
+                name: "222",
+                building: buildingId,
+                _id: "5cc85939e50be37333359408"
+            }), new Room({
+                name: "222",
+                building: mongoose.Types.ObjectId(),
+            }), new Room({
+                name: "222",
+                building: mongoose.Types.ObjectId(),
+            }), new Room({
+                name: "222",
+                building: mongoose.Types.ObjectId(),
+            }), new Room({
+                name: "222",
+                building: buildingId,
+            })];
+
+            for (let i = 0; i < rooms.length; i++) {
+                await rooms[i].save();
+            }
+
+            const signalMaps = [
+                new SignalMap({
+                    isActive: true,
+                    _id: "5cc8565c7e14e27313a9ddbb",
+                    room: "5cc8565c7e14e27313a9ddba",
+                    "beacons": [
+                        {
+                            signals: [
+                                -68.33333333333333,
+                                -67,
+                                -63.6,
+                                -69,
+                                -69.8,
+                                -69.6
+                            ],
+                            _id: "5cc813915dd2bd712743c9ba"
+                        },
+                        {
+                            signals: [
+                                -74.33333333333333,
+                                -78.8,
+                                -76.8,
+                                -73.8,
+                                -74.2,
+                                -74.2
+                            ],
+                            _id: "5cc81e43c3325e715fb3b72b"
+                        },
+                        {
+                            signals: [
+                                -70,
+                                -69,
+                                -75.4,
+                                -72,
+                                -73,
+                                -68.2
+                            ],
+                            _id: "5cc81eb1c3325e715fb3b72c"
+                        },
+                        {
+                            signals: [
+                                -75.33333333333333,
+                                -75.2,
+                                -70.2,
+                                -70.2,
+                                -69.6,
+                                -69.8
+                            ],
+                            _id: "5cc820cda98a3571910886b4"
+                        }
+                    ],
+                    __v: 0
+                }),
+                new SignalMap({
+                    isActive: true,
+                    _id: "5cc856907e14e27313a9ddc1",
+                    room: "5cc856907e14e27313a9ddc0",
+                    beacons: [
+                        {
+                            signals: [
+                                -82.4,
+                                -100,
+                                -82,
+                                -100,
+                                -79.8,
+                                -100,
+                                -74,
+                                -100,
+                                -75.2,
+                                -100,
+                                -72.8,
+                                -100
+                            ],
+                            _id: "5cc813915dd2bd712743c9ba"
+                        },
+                        {
+                            signals: [
+                                -65,
+                                -100,
+                                -67.6,
+                                -100,
+                                -65.8,
+                                -100,
+                                -66,
+                                -100,
+                                -68.2,
+                                -100,
+                                -64,
+                                -100
+                            ],
+                            _id: "5cc81e43c3325e715fb3b72b"
+                        },
+                        {
+                            signals: [
+                                -66.6,
+                                -100,
+                                -66,
+                                -100,
+                                -69.4,
+                                -100,
+                                -69.6,
+                                -100,
+                                -70,
+                                -100,
+                                -70.8,
+                                -100
+                            ],
+                            _id: "5cc81eb1c3325e715fb3b72c"
+                        },
+                        {
+                            signals: [
+                                -84.2,
+                                -100,
+                                -83.2,
+                                -100,
+                                -82.4,
+                                -100,
+                                -82.4,
+                                -100,
+                                -80.4,
+                                -100,
+                                -83.2,
+                                -100
+                            ],
+                            _id: "5cc820cda98a3571910886b4"
+                        },
+                        {
+                            signals: [
+                                -82.4,
+                                -100,
+                                -82,
+                                -100,
+                                -79.8,
+                                -100,
+                                -74,
+                                -100,
+                                -75.2,
+                                -100,
+                                -72.8,
+                                -100
+                            ],
+                            _id: "5cc813915dd2bd712743c9ba"
+                        },
+                        {
+                            signals: [
+                                -65,
+                                -100,
+                                -67.6,
+                                -100,
+                                -65.8,
+                                -100,
+                                -66,
+                                -100,
+                                -68.2,
+                                -100,
+                                -64,
+                                -100
+                            ],
+                            _id: "5cc81e43c3325e715fb3b72b"
+                        },
+                        {
+                            signals: [
+                                -66.6,
+                                -100,
+                                -66,
+                                -100,
+                                -69.4,
+                                -100,
+                                -69.6,
+                                -100,
+                                -70,
+                                -100,
+                                -70.8,
+                                -100
+                            ],
+                            _id: "5cc81eb1c3325e715fb3b72c"
+                        },
+                        {
+                            signals: [
+                                -84.2,
+                                -100,
+                                -83.2,
+                                -100,
+                                -82.4,
+                                -100,
+                                -82.4,
+                                -100,
+                                -80.4,
+                                -100,
+                                -83.2,
+                                -100
+                            ],
+                            _id: "5cc820cda98a3571910886b4"
+                        }
+                    ],
+                    __v: 0
+                }),
+                new SignalMap({
+                    isActive: true,
+                    _id: "5cc8593fe50be37333359409",
+                    room: "5cc85939e50be37333359408",
+                    beacons: [
+                        {
+                            signals: [
+                                -44.666666666666664,
+                                -48.8,
+                                -46.6
+                            ],
+                            _id: "5cc813915dd2bd712743c9ba"
+                        },
+                        {
+                            signals: [
+                                -51.333333333333336,
+                                -48.8,
+                                -49
+                            ],
+                            _id: "5cc81e43c3325e715fb3b72b"
+                        },
+                        {
+                            signals: [
+                                -42.333333333333336,
+                                -39.2,
+                                -40.8
+                            ],
+                            _id: "5cc81eb1c3325e715fb3b72c"
+                        },
+                        {
+                            signals: [
+                                -47.333333333333336,
+                                -54,
+                                -49.8
+                            ],
+                            _id: "5cc820cda98a3571910886b4"
+                        }
+                    ],
+                    __v: 0
+                })
+            ];
+            for (let i = 0; i < signalMaps.length; i++) {
+                await signalMaps[i].save();
+            }
+
+            const newBeacons = [new Beacon({
+                _id: "5cc813915dd2bd712743c9ba",
+                building: {
+                    feedback: [],
+                    _id: "5ca34d31ab35306b2610eb7b",
+                    name: "Empire State Building",
+                    __v: 0
+                },
+                name: "vIgJ",
+                uuid: "f7826da6-4fa2-4e98-8024-bc5b71e0893b",
+                __v: 0
+            }),
+                new Beacon({
+                    _id: "5cc81e43c3325e715fb3b72b",
+                    building: {
+                        feedback: [],
+                        _id: "5ca34d31ab35306b2610eb7b",
+                        "name": "Empire State Building",
+                        "__v": 0
+                    },
+                    name: "ha2T",
+                    uuid: "f7826da6-4fa2-4e98-8024-bc5b71e0893a",
+                    __v: 0
+                }),
+                new Beacon({
+                    _id: "5cc81eb1c3325e715fb3b72c",
+                    building: {
+                        feedback: [],
+                        _id: "5ca34d31ab35306b2610eb7b",
+                        name: "Empire State Building",
+                        __v: 0
+                    },
+                    name: "LToy",
+                    uuid: "f7826da6-4fa2-4e98-8024-bc5b71e0891e",
+                    __v: 0
+                }),
+                new Beacon({
+                    _id: "5cc820cda98a3571910886b4",
+                    building: {
+                        feedback: [],
+                        _id: "5ca34d31ab35306b2610eb7b",
+                        "name": "Empire State Building",
+                        "__v": 0
+                    },
+                    name: "CQS0",
+                    uuid: "f7826da6-4fa2-4e98-8024-bc5b71e0877e",
+                    __v: 0
+                })];
+            for (let i = 0; i < newBeacons.length; i++) {
+                await newBeacons[i].save();
+            }
+
+            beacons = [
+                {signals: [-65.33333], beaconId: "5cc813915dd2bd712743c9ba"},
+                {signals: [-66], beaconId: "5cc81e43c3325e715fb3b72b"},
+                {signals: [-64], beaconId: "5cc81eb1c3325e715fb3b72c"},
+                {signals: [-65.33333], beaconId: "5cc820cda98a3571910886b4"}];
+
+            buildingId = "5ca34d31ab35306b2610eb7b";
+            roomId = undefined;
+
+            const res = await exec();
+            console.log(JSON.stringify(res));
+
+        });
 
         it("Should return 400 if neither roomId or buildingId provided", async () => {
             buildingId = undefined;

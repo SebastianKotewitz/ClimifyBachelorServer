@@ -136,7 +136,6 @@ describe('/api/buildings', () => {
             room = new Room({name: "hej", location: "hej", building: buildingId});
             roomId = room.id;
             token = user.generateAuthToken();
-
             await building.save();
             await room.save();
         });
@@ -152,7 +151,12 @@ describe('/api/buildings', () => {
             await building.save();
             const res = await exec();
             expect(res.body.name).to.equal("324");
-        })
+        });
+
+        it("Should return 404 if building was not found", async () => {
+            buildingId = mongoose.Types.ObjectId();
+            await expect(exec()).to.be.rejectedWith("Not Found");
+        });
 
     });
 

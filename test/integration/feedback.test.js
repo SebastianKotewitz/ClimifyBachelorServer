@@ -54,9 +54,9 @@ describe('/api/feedback', () => {
 
         const exec = () => {
             return request(server)
-                .post('/api/feedback')
-                .set({'x-auth-token': token})
-                .send({roomId, questionId, answerId})
+              .post('/api/feedback')
+              .set({'x-auth-token': token})
+              .send({roomId, questionId, answerId})
         };
 
         beforeEach(async () => {
@@ -77,7 +77,13 @@ describe('/api/feedback', () => {
             question = new Question({
                 value: '123',
                 room: room._id,
-                answerOptions: [mongoose.Types.ObjectId(), mongoose.Types.ObjectId()]
+                answerOptions: [{
+                    value: "123",
+                    _id: mongoose.Types.ObjectId()
+                }, {
+                    value: "1234",
+                    _id: mongoose.Types.ObjectId()
+                }]
             });
             await question.save();
             questionId = question._id;
@@ -128,8 +134,16 @@ describe('/api/feedback', () => {
             const room2 = new Room({name: "123", location: "h123", building: building2._id});
             await room2.save();
 
-            const question2 = new Question({value: '12345', room: room2._id,
-            answerOptions: [mongoose.Types.ObjectId(),mongoose.Types.ObjectId()]});
+            const question2 = new Question({
+                value: '12345', room: room2._id,
+                answerOptions: [{
+                    _id: mongoose.Types.ObjectId(),
+                    value: "123"
+                }, {
+                    _id: mongoose.Types.ObjectId(),
+                    value: "123"
+                }]
+            });
             await question2.save();
 
             questionId = question2.id;
@@ -316,7 +330,17 @@ describe('/api/feedback', () => {
 
             roomId = room._id;
 
-            question = new Question({value: '123', room: roomId, answerOptions: [mongoose.Types.ObjectId(), mongoose.Types.ObjectId()]});
+            question = new Question({
+                value: '123',
+                room: roomId,
+                answerOptions: [{
+                    value: "123",
+                    _id: mongoose.Types.ObjectId()
+                }, {
+                    value: "1234",
+                    _id: mongoose.Types.ObjectId()
+                }]
+            });
             answer = new Answer({value: "123", question: question._id});
 
             feedback = new Feedback({
@@ -510,7 +534,7 @@ describe('/api/feedback', () => {
             });
         });
 
-        describe("GET /answeredQuestions/",  () => {
+        describe("GET /answeredQuestions/", () => {
 
             const exec = () => {
                 return request(server)
@@ -566,7 +590,17 @@ describe('/api/feedback', () => {
 
             it("Should be possible to send queries and limit the result", async () => {
 
-                let question2 = new Question({value: '123', room: roomId, answerOptions: [mongoose.Types.ObjectId(), mongoose.Types.ObjectId()]});
+                let question2 = new Question({
+                    value: '123',
+                    room: roomId,
+                    answerOptions: [{
+                        value: "123",
+                        _id: mongoose.Types.ObjectId()
+                    }, {
+                        value: "1234",
+                        _id: mongoose.Types.ObjectId()
+                    }]
+                });
                 await question2.save();
 
                 feedback = new Feedback({

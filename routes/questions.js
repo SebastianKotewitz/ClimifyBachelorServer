@@ -33,7 +33,7 @@ router.post('/', [auth], async (req, res) => {
     if (!user.adminOnBuildings || !user.adminOnBuildings.find(elem => elem.toString() === building._id.toString()))
         return res.status(403).send('Admin rights on the building are required to post new questions');
 
-    const question = new Question({
+    let question = new Question({
         value,
         room: roomId,
     });
@@ -41,13 +41,15 @@ router.post('/', [auth], async (req, res) => {
     for (let i = 0; i < answerOptions.length; i++) {
         let answer = new Answer({value: answerOptions[i], question: question.id});
         await answer.save();
-        question.answerOptions.push(answer.id);
+        question.answerOptions.push(answer);
     }
-
-    console.log(answerOptions);
-    console.log(question);
     await question.save();
-    res.send(_.pick(question, ["_id", "room", "value", "isActive"]));
+    // for (let i = 0; i < answerOptions.length; i++) {
+    //     question.answerOptions[i] = answerOptions[i];
+    // }
+    const hej = _.pick(question, ["_id", "room", "value", "isActive", "answerOptions"]);
+
+    res.send(hej);
 });
 
 router.get('/', auth, async (req, res) => {
@@ -60,9 +62,7 @@ router.get('/', auth, async (req, res) => {
    const room = await Room.findById(roomId);
    if (!room) return res.status(404).send(`Room with id ${roomId} was not found`);
 
-    const questions = await Question.find({room: room._id})
-      .populate('answerOptions');
-    console.log(questions[0]);
+    const questions = await Question.find({room: room._id});
     res.send(questions);
 });
 

@@ -106,7 +106,6 @@ function estimateNearestNeighbors(clientBeacons, signalMaps, k, beaconIds) {
     const initialPoints = [];
     for (let i = 0; i < signalMaps.length; i++) {
         const alignedServerBeacons = alignAndFillArrays(beaconIds, signalMaps[i].beacons);
-        console.log("hej", alignedServerBeacons);
         for (let j = 0; j < alignedServerBeacons[0].signals.length; j++) {
             const vector = [];
             for (let l = 0; l < alignedServerBeacons.length; l++) {
@@ -123,6 +122,7 @@ function estimateNearestNeighbors(clientBeacons, signalMaps, k, beaconIds) {
         k = initialPoints.length;
 
     const dimension = beaconIds.length;
+    console.log(initialPoints);
     const knnManager = new KnnManager(dimension, initialPoints, k);
 
     const newPointVector = [];

@@ -25,11 +25,15 @@ const createSignalMap = async (req, res) => {
 
         for (let i = 0; i < signalMaps.length; i++) {
             const room = await Room.findById(signalMaps[i].room);
+            console.log('roombuild: ', room.building);
+            console.log('buildingId: ', buildingId);
             if (room.building.toString() !== buildingId.toString()) {
                 signalMaps.splice(i, 1);
                 i--;
             }
         }
+        console.log('siiig: ', signalMaps);
+
         const serverBeacons = await Beacon.find({building: buildingId});
         if (!serverBeacons || serverBeacons.length <= 0)
             return res.status(400).send("Was unable to find beacon with building id " + buildingId);
@@ -51,7 +55,7 @@ const createSignalMap = async (req, res) => {
         beacons,
         isActive: !!roomId
     });
-    await signalMap.save();
+    signalMap = await signalMap.save();
     res.send(signalMap);
 };
 
