@@ -1,6 +1,7 @@
 const {User} = require('../../models/user');
 const {Building} = require('../../models/building');
 const {Room} = require('../../models/room');
+const {Feedback} = require('../../models/feedback');
 const request = require('supertest');
 const assert = require('assert');
 const mongoose = require('mongoose');
@@ -199,12 +200,14 @@ describe('/api/buildings', () => {
         let room;
         let token;
         let roomId;
+        let query;
 
         beforeEach(async () => {
             building = new Building({name: "324"});
             buildingId = building.id;
             room = new Room({name: "hej", location: "hej", building: buildingId});
             roomId = room.id;
+            query = "";
             token = user.generateAuthToken();
             await building.save();
             await room.save();
@@ -212,7 +215,7 @@ describe('/api/buildings', () => {
 
         const exec = () => {
             return request(server)
-              .get("/api/buildings/" + buildingId)
+              .get("/api/buildings/" + buildingId + "/" + query)
               .set("x-auth-token", token);
         };
 
@@ -226,6 +229,31 @@ describe('/api/buildings', () => {
         it("Should return 404 if building was not found", async () => {
             buildingId = mongoose.Types.ObjectId();
             await expect(exec()).to.be.rejectedWith("Not Found");
+        });
+
+        it("Should return feedbackCount if withFeedbackCount query set", async () => {
+            query = "?withFeedbackCount=true";
+            const res = await exec();
+            expect(res.body.feedbackCount).to.equal(0);
+        });
+
+        it("Should set correct feedbackCount", async () => {
+            query = "?withFeedbackCount=true";
+            const room = await new Room({
+                name: "hej",
+                building: buildingId
+            }).save();
+
+            await new Feedback({
+                answer: mongoose.Types.ObjectId(),
+                question: mongoose.Types.ObjectId(),
+                user: mongoose.Types.ObjectId(),
+                room: room.id
+            }).save();
+
+
+            const res = await exec();
+            expect(res.body.feedbackCount).to.equal(1);
         });
 
     });

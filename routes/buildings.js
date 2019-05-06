@@ -2,6 +2,7 @@ const express = require('express');
 const mongoose = require('mongoose');
 const {Building, validate} = require('../models/building');
 const {Room} = require('../models/room');
+const {Feedback} = require('../models/feedback');
 const {User} = require('../models/user');
 const _ = require('lodash');
 const router = express.Router();
@@ -40,6 +41,14 @@ router.get("/:id", [auth, validId], async (req, res) => {
     if (!building) return res.status(404).send(`Building with id ${req.params.id} was not found`);
     const newBuilding = _.pick(building, ["name", "_id"]);
     newBuilding.rooms = await Room.find({building: building.id});
+
+    if (req.query.withFeedbackCount) {
+        let feedbackCount = 0;
+        for (let i = 0; i < newBuilding.rooms.length; i++) {
+            feedbackCount += await Feedback.countDocuments({room: newBuilding.rooms[i]._id});
+        }
+        newBuilding.feedbackCount = feedbackCount;
+    }
 
     res.send(newBuilding);
 });

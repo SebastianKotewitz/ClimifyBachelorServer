@@ -7,7 +7,6 @@ const {Room} = require('../models/room');
 const {Building} = require('../models/building');
 const mongoose = require('mongoose');
 const {auth} = require('../middleware/auth');
-const validateId = require("../middleware/validateIdParam");
 
 router.post('/', [auth], async (req, res) => {
 

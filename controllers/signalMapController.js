@@ -53,8 +53,7 @@ const createSignalMap = async (req, res) => {
         isActive: !!roomId
     });
     signalMap = await signalMap.save();
-    const room = await Room.findById(signalMap.room);
-    signalMap.room = room;
+    signalMap.room = await Room.findById(signalMap.room);
     console.log("returned", signalMap);
     res.send(signalMap);
 };

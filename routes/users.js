@@ -9,15 +9,11 @@ router.post('/', async (req, res) => {
     let user;
 
     if (req.body.email) {
-        let result;
         try {
-            result = await validateAuthorized(req.body);
+            await validateAuthorized(req.body);
         } catch (e) {
             return res.status(400).send(e.message);
         }
-        console.log("reeed", result);
-        // const {error} = validateAuthorized(req.body);
-        // if (error)
     } else {
         try {
             await validate(req.body);
@@ -25,8 +21,6 @@ router.post('/', async (req, res) => {
             return res.status(400).send(e.message);
         }
     }
-
-
 
     if (req.body.email) {
         const {email, password} = req.body;
@@ -40,9 +34,7 @@ router.post('/', async (req, res) => {
         user = new User();
     }
 
-
     await user.save();
-
     const token = user.generateAuthToken();
 
     res.header('x-auth-token', token).send(_.pick(user, ["_id", "email"]));
@@ -56,9 +48,11 @@ router.get('/', async (req, res) => {
 });
 
 router.patch('/makeAdmin', async (req, res) => {
-    const user = await User.findByIdAndUpdate(req.body.id, { $set: {
-        adminOnBuilding: req.body.buildingId
-        }});
+    const user = await User.findByIdAndUpdate(req.body.id, {
+        $set: {
+            adminOnBuilding: req.body.buildingId
+        }
+    });
 
     res.send(user);
 });

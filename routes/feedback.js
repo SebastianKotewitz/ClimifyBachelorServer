@@ -1,11 +1,11 @@
 const express = require('express');
 const router = express.Router();
-const { Feedback, validate } = require('../models/feedback');
-const { Room } = require('../models/room');
-const { Answer } = require('../models/answer');
-const { Question } = require('../models/question');
-const { User } = require('../models/user');
-const { Building } = require('../models/building');
+const {Feedback, validate} = require('../models/feedback');
+const {Room} = require('../models/room');
+const {Answer} = require('../models/answer');
+const {Question} = require('../models/question');
+const {User} = require('../models/user');
+const {Building} = require('../models/building');
 const _ = require('lodash');
 const validateId = require('../middleware/validateIdParam');
 const {auth} = require('../middleware/auth');
@@ -30,16 +30,18 @@ router.post('/', auth, async (req, res) => {
     const question = await Question.findById(questionId);
     if (!question) return res.status(404).send("Question with id " + questionId + " was not found");
 
-    if (question.room.toString() !== roomId)
-        return res.status(400).send("Question was not from the same room as the feedback given");
+    for (let i = 0; i < question.rooms.length; i++) {
+        if (question.rooms[i].toString() !== roomId)
+            return res.status(400).send("Question was not from the same room as the feedback given");
+    }
 
     let feedback = new Feedback(
-        {
-            user: user._id,
-            room: roomId,
-            answer: answerId,
-            question: questionId
-        }
+      {
+          user: user._id,
+          room: roomId,
+          answer: answerId,
+          question: questionId
+      }
     );
 
     const building = await Building.findById(room.building);
@@ -60,31 +62,6 @@ router.get('/', auth, async (req, res) => {
     res.send(feedback);
 });
 
-/*router.get('/buildingFeedback/:id', [validateId, auth], async (req, res) => {
-
-    const building = await Building.findById(req.params.id);
-    if (!building) return res.status(404).send(`Building with id ${req.params.id} was not found`);
-
-    const query = feedbackQuery(req.query, req.user._id);
-    if (!query) return res.status(400).send("Invalid query parameter");
-    const feedback = await Feedback.find(query).populate('user', '-__v -_id');
-    res.send(feedback);
-});
-
-router.get('/userFeedback/:userId', [validateId, auth], async (req, res) => {
-    const userId = req.params.userId;
-
-    const query = feedbackQuery(req.query, req.user._id);
-    if (!query) return res.status(400).send("Invalid query parameter");
-    if (await User.countDocuments({_id: userId}) <= 0)
-        return res.status(404).send('User with id ' + userId + ' was not found.');
-
-
-    query.user = userId;
-    const feedback = await Feedback.find(query).populate('user');
-    res.send(feedback);
-});*/
-
 router.get("/answeredQuestions", auth, async (req, res) => {
 
     let answeredQuestions = [];
@@ -104,7 +81,6 @@ router.get("/answeredQuestions", auth, async (req, res) => {
                 question: _.pick(feedback[i].question, ["value", "_id"]),
                 timesAnswered: 1
             })
-
         }
     }
     res.send(Array.from(answeredQuestions));
@@ -138,7 +114,7 @@ router.get("/questionStatistics/:questionId", [validateId, auth], async (req, re
 });
 
 
-function feedbackQuery (query, userId) {
+function feedbackQuery(query, userId) {
     let feedbackQuery = {};
     let today = new Date();
 
@@ -150,17 +126,17 @@ function feedbackQuery (query, userId) {
     switch (query.t) {
         case "hour":
             feedbackQuery.createdAt = {
-                $gt: new Date(today.getFullYear(), today.getMonth(), today.getDate(), today.getHours(), today.getMinutes()-60, today.getSeconds())
+                $gt: new Date(today.getFullYear(), today.getMonth(), today.getDate(), today.getHours(), today.getMinutes() - 60, today.getSeconds())
             };
             break;
         case "day":
             feedbackQuery.createdAt = {
-                $gt: new Date(today.getFullYear(), today.getMonth(), today.getDate(), today.getHours()-24, today.getMinutes())
+                $gt: new Date(today.getFullYear(), today.getMonth(), today.getDate(), today.getHours() - 24, today.getMinutes())
             };
             break;
         case "week":
             feedbackQuery.createdAt = {
-                $gt: new Date(today.getFullYear(), today.getMonth(), today.getDate()-7, today.getHours())
+                $gt: new Date(today.getFullYear(), today.getMonth(), today.getDate() - 7, today.getHours())
             };
             break;
         case "month":
