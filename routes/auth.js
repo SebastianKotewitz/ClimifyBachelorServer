@@ -21,7 +21,7 @@ router.post("/", async (req, res) => {
     if (!validPassword) return res.status(400).send(FAIL_AUTH_TEXT);
 
     const token = user.generateAuthToken();
-
+        
     res.header("x-auth-token", token).send("Login successful");
 });
 

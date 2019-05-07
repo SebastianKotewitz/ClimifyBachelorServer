@@ -59,7 +59,12 @@ describe('/api/signalMaps', () => {
             const building = new Building({
                 name: "222"
             });
+
+
             await building.save();
+
+            user.adminOnBuildings.push(building.id);
+            await user.save();
 
             let beacon = new Beacon({
                 name: "hej", building: building.id,
@@ -714,6 +719,32 @@ describe('/api/signalMaps', () => {
             await SignalMap.deleteMany();
             roomId = undefined;
             await expect(exec()).to.be.rejectedWith("Bad Request");
+        });
+
+        it("Should return 403 if roomId provided and user was not authorized", async () => {
+            user.role = 0;
+            token = user.generateAuthToken();
+            await user.save();
+
+            buildingId = undefined;
+            await expect(exec()).to.be.rejectedWith("Forbidden");
+
+        });
+
+        it("Should return 400 if room was not found", async () => {
+            roomId = mongoose.Types.ObjectId();
+            buildingId = undefined;
+
+            await expect(exec()).to.be.rejectedWith("Bad Request");
+        });
+
+        it("Should return 403 if user was not admin on building where signalmap is posted", async () => {
+            user.adminOnBuildings = [];
+            token = user.generateAuthToken();
+            await user.save();
+
+            buildingId = undefined;
+            await expect(exec()).to.be.rejectedWith("Forbidden");
         });
 
     });

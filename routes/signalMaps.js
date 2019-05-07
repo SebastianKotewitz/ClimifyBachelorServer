@@ -6,7 +6,7 @@ const router = express.Router();
 const {createSignalMap, confirmRoom} = require("../controllers/signalMapController");
 // import * as signalMapController from "../controllers/signalMapController";
 
-router.post('/', [auth, authorized], createSignalMap);
+router.post('/', [auth], createSignalMap);
 
 
 router.get('/', auth, async (req, res) => {
