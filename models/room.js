@@ -26,7 +26,6 @@ const Room = mongoose.model('Room', roomSchema);
 function validateRoom(room) {
     const schema = {
         name: Joi.string().min(1).max(255).required(),
-        // location: Joi.string().min(1).max(1024),
         buildingId: Joi.objectId().required()
     };
     return Joi.validate(room, schema);

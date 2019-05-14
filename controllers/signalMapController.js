@@ -2,6 +2,7 @@ const {SignalMap, validate, estimateNearestNeighbors} = require("../models/signa
 const {Room} = require("../models/room");
 const {Beacon} = require("../models/beacon");
 
+
 const createSignalMap = async (req, res) => {
     const {error} = validate(req.body);
 
@@ -79,5 +80,11 @@ const confirmRoom = async (req, res) => {
     res.send(signalMap);
 };
 
+const getSignalMaps = async (req, res) => {
+    const signalMaps = await SignalMap.find();
+    res.send(signalMaps);
+};
+
 module.exports.createSignalMap = createSignalMap;
 module.exports.confirmRoom = confirmRoom;
+module.exports.getSignalMaps = getSignalMaps;

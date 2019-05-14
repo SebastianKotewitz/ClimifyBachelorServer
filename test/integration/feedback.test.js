@@ -76,7 +76,7 @@ describe('/api/feedback', () => {
 
             question = new Question({
                 value: '123',
-                room: room._id,
+                rooms: [room._id],
                 answerOptions: [{
                     value: "123",
                     _id: mongoose.Types.ObjectId()
@@ -94,20 +94,20 @@ describe('/api/feedback', () => {
 
         });
 
-        it('should return 400 if token not provided', async () => {
+        it('should return 401 if token not provided', async () => {
             token = "";
-            await expect(exec()).to.be.rejectedWith("Bad Request");
+            await expect(exec()).to.be.rejectedWith("Unauthorized");
         });
 
-        it('should return 400 if invalid token', async () => {
+        it('should return 401 if invalid token', async () => {
             token = '123';
-            await expect(exec()).to.be.rejectedWith("Bad Request");
+            await expect(exec()).to.be.rejectedWith("Unauthorized");
         });
 
 
-        it('400 if invalid token', async () => {
+        it('401 if invalid token', async () => {
             token = jwt.sign({hej: "hej"}, "hej");
-            await expect(exec()).to.be.rejectedWith("Bad Request");
+            await expect(exec()).to.be.rejectedWith("Unauthorized");
 
         });
 
@@ -135,7 +135,7 @@ describe('/api/feedback', () => {
             await room2.save();
 
             const question2 = new Question({
-                value: '12345', room: room2._id,
+                value: '12345', rooms: [room2._id],
                 answerOptions: [{
                     _id: mongoose.Types.ObjectId(),
                     value: "123"
@@ -156,7 +156,7 @@ describe('/api/feedback', () => {
         });
 
         it("Should return 400 if question was from other room than feedback", async () => {
-            question.room = mongoose.Types.ObjectId();
+            question.rooms = [mongoose.Types.ObjectId()];
             await question.save();
             await expect(exec()).to.be.rejectedWith("Bad Request");
         });
@@ -332,7 +332,7 @@ describe('/api/feedback', () => {
 
             question = new Question({
                 value: '123',
-                room: roomId,
+                rooms: [roomId],
                 answerOptions: [{
                     value: "123",
                     _id: mongoose.Types.ObjectId()
@@ -592,7 +592,7 @@ describe('/api/feedback', () => {
 
                 let question2 = new Question({
                     value: '123',
-                    room: roomId,
+                    rooms: [roomId],
                     answerOptions: [{
                         value: "123",
                         _id: mongoose.Types.ObjectId()

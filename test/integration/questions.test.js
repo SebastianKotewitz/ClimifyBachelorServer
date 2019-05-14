@@ -82,15 +82,15 @@ describe('/api/questions', () => {
             await question.save();
         });
 
-        it('Should return 400 if token not provided', async () => {
+        it('Should return 401 if token not provided', async () => {
             token = null;
-            await expect(exec()).to.be.rejectedWith("Bad Request");
+            await expect(exec()).to.be.rejectedWith("Unauthorized");
 
         });
 
-        it('400 if wrong token format sent', async () => {
+        it('401 if wrong token format sent', async () => {
             token = "hej";
-            await expect(exec()).to.be.rejectedWith("Bad Request");
+            await expect(exec()).to.be.rejectedWith("Unauthorized");
         });
 
         it('404 if user was not found', async () => {
@@ -273,14 +273,14 @@ describe('/api/questions', () => {
               .send({rooms, value, answerOptions});
         };
 
-        it('400 if token not provided', async () => {
+        it('401 if token not provided', async () => {
             token = null;
-            await expect(exec()).to.be.rejectedWith("Bad Request");
+            await expect(exec()).to.be.rejectedWith("Unauthorized");
         });
 
-        it('400 if token not valid', async () => {
+        it('401 if token not valid', async () => {
             token = '12345';
-            await expect(exec()).to.be.rejectedWith("Bad Request");
+            await expect(exec()).to.be.rejectedWith("Unauthorized");
         });
 
         it('404 if user was not found', async () => {
@@ -474,4 +474,135 @@ describe('/api/questions', () => {
         });
     });
 
+    describe("DELETE /:id ", () => {
+        let building;
+        let buildingId;
+        let room;
+        let roomId;
+        let token;
+        let questionId;
+
+        const exec = () => {
+            return request(server)
+              .delete('/api/questions/' + questionId)
+              .set({'x-auth-token': token, 'roomId': roomId});
+        };
+
+        beforeEach(async () => {
+            building = new Building({name: '12345'});
+            await building.save();
+            buildingId = building._id;
+
+            room = new Room({
+                building: buildingId,
+                name: "12345",
+                location: "12345"
+            });
+
+            await room.save();
+            roomId = room._id;
+            user.adminOnBuildings = [buildingId];
+            token = user.generateAuthToken();
+            await user.save();
+
+            const question = new Question({
+                value: "12345",
+                rooms: [roomId],
+                isActive: false,
+                answerOptions: [{
+                    value: "123",
+                    _id: mongoose.Types.ObjectId()
+                }, {
+                    value: "1234",
+                    _id: mongoose.Types.ObjectId()
+                }]
+            });
+
+            await question.save();
+            questionId = question.id;
+        });
+
+
+        it("Should only contain one question in db after deleted one", async () => {
+            await new Question({
+                value: "12345",
+                rooms: [roomId],
+                isActive: false,
+                answerOptions: [{
+                    value: "123",
+                    _id: mongoose.Types.ObjectId()
+                }, {
+                    value: "1234",
+                    _id: mongoose.Types.ObjectId()
+                }]
+            }).save();
+
+            await exec();
+            const questions = await Question.find();
+            expect(questions.length).to.equal(1);
+        });
+
+        it("Should return 403 if user was not admin on building with question", async () => {
+
+            const newRoom = await new Room({
+                building: mongoose.Types.ObjectId(),
+                name: "12345",
+                location: "12345"
+            }).save();
+
+            const newQuestion = await new Question({
+                value: "12345",
+                rooms: [newRoom.id],
+                isActive: false,
+                answerOptions: [{
+                    value: "123",
+                    _id: mongoose.Types.ObjectId()
+                }, {
+                    value: "1234",
+                    _id: mongoose.Types.ObjectId()
+                }]
+            }).save();
+
+            questionId = newQuestion.id;
+            await expect(exec()).to.be.rejectedWith("Forbidden");
+
+        });
+        it("Should delete all answers for that question", async () => {
+            const q = await new Question({
+                value: "12345",
+                rooms: [roomId],
+                isActive: false
+            });
+
+            const a1 = await new Answer({
+                value: "123",
+                question: q.id
+            }).save();
+            const a2 = await new Answer({
+                value: "123",
+                question: mongoose.Types.ObjectId()
+            }).save();
+            const a3 = await new Answer({
+                value: "123",
+                question: q.id
+            }).save();
+
+            q.answerOptions.push(a1);
+            q.answerOptions.push(a3);
+
+
+            await q.save();
+            questionId = q.id;
+
+            await exec();
+            const answers = await Answer.find();
+
+            expect(answers.length).to.equal(1);
+        });
+
+        it("Should return id of deleted question", async () => {
+            const res = await exec();
+            expect(res.body._id).to.equal(questionId.toString());
+        });
+    });
 });

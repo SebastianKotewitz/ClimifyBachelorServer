@@ -51,10 +51,10 @@ describe("auth", () => {
             req.header = sinon.fake.returns(token);
 
         });
-        it('should call status 400 if id was not valid', () => {
+        it('should call status 401 if id was not valid', () => {
             res.send = sinon.fake();
             auth(req, res, next);
-            assert(res.status.calledWith(400));
+            assert(res.status.calledWith(401));
             assert(res.send.getCalls());
             assert(res.send.calledOnce);
 

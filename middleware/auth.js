@@ -4,22 +4,22 @@ const jwt = require("jsonwebtoken");
 
 const auth = async (req, res, next) => {
     const token = req.header("x-auth-token");
-    if (!token) return res.status(400).send('No json web token provided.');
+    if (!token) return res.status(401).send('No json web token provided.');
     let decoded;
 
     console.log(JSON.stringify(token));
     try {
         decoded = jwt.verify(token, process.env.jwtPrivateKey);
     } catch (e) {
-        return res.status(400).send('Invalid token');
+        return res.status(401).send('Invalid token');
     }
 
     const userId = decoded._id;
 
-    if (!userId) return res.status(400).send('Please provide valid token with user id');
+    if (!userId) return res.status(401).send('Please provide valid token with user id');
 
     if (!mongoose.Types.ObjectId.isValid(userId))
-        return res.status(400).send(`User id ${userId} was not valid`);
+        return res.status(401).send(`User id ${userId} was not valid`);
 
     const user = await User.findById(userId);
     if (!user) return res.status(404).send("User with id (decoded from token) " + userId + " was not found");

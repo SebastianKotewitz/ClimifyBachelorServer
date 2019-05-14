@@ -2,6 +2,7 @@ const {User} = require('../../models/user');
 const {Building} = require('../../models/building');
 const {Room} = require('../../models/room');
 const {Question} = require('../../models/question');
+const {Feedback} = require('../../models/feedback');
 const request = require('supertest');
 let assert = require('assert');
 const app = require('../..');
@@ -64,10 +65,11 @@ describe('/api/rooms', () => {
             token = user.generateAuthToken();
         });
 
-        it("should return 400 if no token provided", async () => {
+        it("should return 401 if no token provided", async () => {
             token = null;
-            await expect(exec()).to.be.rejectedWith("Bad Request");
+            await expect(exec()).to.be.rejectedWith("Unauthorized");
         });
+
 
         it("Should return 403 if user not authorized with login role >= 1", async () => {
             user.role = 0;
@@ -150,21 +152,92 @@ describe('/api/rooms', () => {
         let building;
         let room;
         let token;
+        let query;
 
         beforeEach(async () => {
             building = new Building({name: '324'});
 
             room = new Room({name: "222", location: "123", building: building._id});
+
+            user.role = 2;
             token = user.generateAuthToken();
             await building.save();
             await room.save();
+            await user.save();
+            query = "";
         });
         const exec = () => {
             return request(server)
-              .get('/api/rooms')
+              .get('/api/rooms/' + query)
               .set('x-auth-token', token);
         };
 
+        it("Should return 403 if no query parsed and user wasn't admin", async () => {
+            user.role = 1;
+            query = "";
+            await user.save();
+            await expect(exec()).to.be.rejectedWith("Forbidden");
+        });
+
+        it("Should only return rooms that user has given feedback on, when query parsed", async () => {
+            query = "?feedback=me";
+
+            const room = await new Room({name: "222", location: "123", building: building._id}).save();
+
+            await new Feedback({
+                room: room.id,
+                user: user.id,
+                answer: mongoose.Types.ObjectId(),
+                question: mongoose.Types.ObjectId()
+            }).save();
+            const res = await exec();
+            expect(res.body.length).to.equal(1);
+            expect(res.body[0]._id).to.equal(room.id);
+        });
+
+        it("Should only return rooms, that another user is admin on", async () => {
+            user.role = 2;
+            const newBuildingId = mongoose.Types.ObjectId();
+            room = await new Room({name: "222", location: "123", building: newBuildingId}).save();
+            const newUser = await new User({
+                email: "w@w",
+                password: "yo",
+                adminOnBuildings: [newBuildingId]
+            }).save();
+
+            query = "?admin=" + newUser.id;
+            const res = await exec();
+            expect(res.body.length).to.equal(1);
+            expect(res.body[0]._id).to.equal(room.id);
+
+
+        });
+
+        it("Should return 404 if user was not found", async () => {
+            query = "?admin=" + mongoose.Types.ObjectId();
+            await expect(exec()).to.be.rejectedWith("Not Found");
+        });
+        it("Should return 403 if user tried to get rooms another user is admin on but was not admin himself", async () => {
+            user.role = 1;
+            await user.save();
+            query = "?admin=" + mongoose.Types.ObjectId();
+            await expect(exec()).to.be.rejectedWith("Forbidden");
+        });
+
+        it("Should only return rooms where user is admin if query admin=me parsed", async () => {
+            user.adminOnBuildings = [building.id];
+            await user.save();
+            await new Room({
+                name: "222",
+                location: "123",
+                building: mongoose.Types.ObjectId()
+            }).save();
+
+            query = "?admin=me";
+            const res = await exec();
+            expect(res.body.length).to.equal(1);
+            expect(res.body[0].building).to.equal(building.id);
+        });
 
         it('should return array with length 2 of rooms when 2 rooms are posted', async () => {
             const room2 = new Room({name: "222", location: "123", building: building._id});

@@ -1,4 +1,5 @@
 const {Question} = require("../models/question");
+const {Answer} = require("../models/answer");
 const {Room} = require("../models/room");
 
 const deleteQuestion = async (req, res) => {
@@ -8,13 +9,16 @@ const deleteQuestion = async (req, res) => {
     if (!question) return res.status(404).send(`Question with id ${id} was not found in database`);
 
 
-    if (!req.user.adminOnBuildings.find(elem => elem.toString() === id.toString()))
-        return res.status(403).send("User needs to be admin on question to delete it");
+    const rooms = await Room.find({_id: {$in: question.rooms}});
+    for (let i = 0; i < rooms.length; i++) {
+        if (!req.user.adminOnBuildings.find(elem => elem.toString() === rooms[i].building.toString()))
+            return res.status(403).send("User needs to be admin on building with question to delete it");
+    }
 
-
-    const questions = await Question.find({question: id});
-    for (let i = 0; i < questions.length; i++) {
-        await Question.deleteMany({questions: questions[i].id});
+    for (let i = 0; i < question.answerOptions.length; i++) {
+        const res = await Answer.findByIdAndRemove(question.answerOptions[i]._id);
+        console.log("res", res);
+        console.log("res", question.answerOptions[i]._id);
     }
 
     await question.remove();

@@ -62,9 +62,9 @@ describe('/api/buildings', () => {
         });
 
 
-        it('400 if json token not provided in header', async () => {
+        it('401 if json token not provided in header', async () => {
             token = null;
-            await expect(exec()).to.be.rejectedWith("Bad Request");
+            await expect(exec()).to.be.rejectedWith("Unauthorized");
         });
 
         it('400 if name not provided', async () => {
@@ -265,31 +265,37 @@ describe('/api/buildings', () => {
         let room;
         let token;
         let roomId;
+        let query;
 
         beforeEach(async () => {
             building = new Building({name: "324"});
             buildingId = building.id;
             room = new Room({name: "hej", location: "hej", building: buildingId});
             roomId = room.id;
+            user.adminOnBuildings = [buildingId];
             token = user.generateAuthToken();
 
+            query = "";
             await building.save();
             await room.save();
+            await user.save();
         });
 
         const exec = () => {
             return request(server)
-              .get("/api/buildings")
+              .get("/api/buildings/" + query)
               .set("x-auth-token", token);
         };
 
         it("Should return building with room", async () => {
+            query = "?admin=me";
             const res = await exec();
             expect(res.body[0].rooms[0]._id).to.equal(roomId);
         });
 
 
         it("Should return array with rooms", async () => {
+            query = "?admin=me";
             let room2 = new Room({name: "hej", location: "hej", building: buildingId});
             let room3 = new Room({name: "hej", location: "hej", building: mongoose.Types.ObjectId()});
             await room2.save();
@@ -298,6 +304,118 @@ describe('/api/buildings', () => {
             expect(res.body[0].rooms.length).to.equal(2);
         });
 
+        it("Should only return buildings that requesting user is admin on when query set", async () => {
+            query = "?admin=me";
+
+            const b1 = await new Building({name: "hej"}).save();
+            const b2 = await new Building({name: "hej"}).save();
+            user.adminOnBuildings = [b1.id, b2.id];
+
+            await user.save();
+
+            const res = await exec();
+            expect(res.body.length).is.equal(2);
+        });
+
+        it("Should return 403 if user was not admin but tried to get all buildings", async () => {
+            await expect(exec()).to.be.rejectedWith("Forbidden");
+        });
+
+        it("Should get all buildings when user was admin and did not set any query parameter", async () => {
+
+            user.role = 2;
+            token = user.generateAuthToken();
+            await user.save();
+            await new Building({name: "hej"}).save();
+            await new Building({name: "hej"}).save();
+
+            const res = await exec();
+            expect(res.body.length).to.equal(3);
+        });
+
+        it("Should return 403 if non admin user tries to get buildings from where feedback from " +
+          "a different user was given", async () => {
+            const feedback = await new Feedback({
+                question: mongoose.Types.ObjectId(),
+                answer: mongoose.Types.ObjectId(),
+                user: mongoose.Types.ObjectId(),
+                room: roomId
+            }).save();
+
+            await new Building({name: "hej"}).save();
+
+            query = "?feedback=" + feedback.user;
+
+            await expect(exec()).to.be.rejectedWith("Forbidden");
+        });
+
+        it("Should return buildings where another user has given feedback ", async () => {
+
+
+            const building = await new Building({name: "hej"}).save();
+            const room = await  new Room({
+                name: "222",
+                building: building.id
+            }).save();
+
+            const newUser = await new User({
+                email: "w@w",
+                password: "qweQWE123",
+                role: 1
+            }).save();
+            await new Feedback({
+                question: mongoose.Types.ObjectId(),
+                answer: mongoose.Types.ObjectId(),
+                user: newUser.id,
+                room: room.id
+            }).save();
+
+
+            user.role = 2;
+            await user.save();
+            query = "?feedback=" + newUser.id;
+            const res = await exec();
+            expect(res.body.length).to.equal(1);
+            expect(res.body[0]._id).to.equal(building.id);
+
+        });
+
+
+        it("Should get buildings where feedback was given", async () => {
+            await new Feedback({
+                question: mongoose.Types.ObjectId(),
+                answer: mongoose.Types.ObjectId(),
+                user: user.id,
+                room: roomId
+            }).save();
+
+            await new Building({name: "hej"}).save();
+
+            query = "?feedback=me";
+            const res = await exec();
+            expect(res.body.length).to.equal(1);
+
+        });
+
+        it("Should get building from another admin when proper query parsed", async () => {
+            user.role = 2;
+
+            const b1 = await new Building({name: "hej"}).save();
+            const b2 = await new Building({name: "hej"}).save();
+
+            const newUser = await new User({
+                email: "q@q",
+                password: "qweQWE123",
+                adminOnBuildings: [b1.id, b2.id]
+            }).save();
+
+            query = "?admin=" + newUser.id;
+            token = user.generateAuthToken();
+            await user.save();
+
+            const res = await exec();
+            expect(res.body[0]._id).to.equal(b1.id);
+        });
+
     });
 });
-

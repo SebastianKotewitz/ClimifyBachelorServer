@@ -7,6 +7,7 @@ const {Room} = require('../models/room');
 const {Building} = require('../models/building');
 const mongoose = require('mongoose');
 const {auth} = require('../middleware/auth');
+const questionController = require("../controllers/questionController");
 
 router.post('/', [auth], async (req, res) => {
 
@@ -122,5 +123,7 @@ router.patch("/setActive/:id", auth, async (req, res) => {
 
     res.send(question);
 });
+
+router.delete("/:id", auth, questionController.deleteQuestion);
 
 module.exports = router;

@@ -14,9 +14,10 @@ chai.should();
 
 describe('/api/users', () => {
     let user;
+    let token;
 
     before(async () => {
-        server = app.listen( config.get('port'));
+        server = app.listen(config.get('port'));
         await mongoose.connect(config.get('db'), {useNewUrlParser: true});
     });
     after(async () => {
@@ -26,6 +27,7 @@ describe('/api/users', () => {
 
     beforeEach(async () => {
         user = new User();
+        token = user.generateAuthToken();
         await user.save();
     });
     afterEach(async () => {
@@ -33,21 +35,43 @@ describe('/api/users', () => {
     });
 
     describe("GET /", () => {
-
+        let query;
         const exec = () => {
             return request(server)
-              .get("/api/users");
+              .get("/api/users" + query)
+              .set('x-auth-token', token);
         };
 
-        it("Should not return password", async () => {
-            const user = new User({email: "hej", password: "yo"});
+        beforeEach(async () => {
+            user = new User({
+                email: "hej",
+                password: "yo",
+                role: 2
+            });
+            token = user.generateAuthToken();
             await user.save();
+            query = "";
+        });
+
+        it("Should not return password", async () => {
+
             const res = await exec();
             const users = res.body;
             const password = users.find((elem) => elem._id === user.id).password;
-            console.log(password);
             expect(password).to.not.be.ok;
         });
+
+        it("Should return 403 if user was not admin", async () => {
+            user.role = 1;
+            await user.save();
+            await expect(exec()).to.be.rejectedWith("Forbidden");
+        });
+
+        it("Should return 401 if token not provided", async () => {
+            token = null;
+            await expect(exec()).to.be.rejectedWith("Unauthorized");
+        });
+
     });
 
     describe('POST /', () => {
@@ -107,7 +131,7 @@ describe('/api/users', () => {
             it("Should create user with authorized role if valid email and password provided", async () => {
                 try {
                     await exec();
-                }catch (e) {
+                } catch (e) {
                     console.log(e);
                 }
 
@@ -133,5 +157,60 @@ describe('/api/users', () => {
             });
 
         });
+    });
+
+    describe("PATCH /makeAdmin", () => {
+        let newUser;
+        let newUserId;
+        let buildingId;
+
+        beforeEach(async () => {
+            buildingId = mongoose.Types.ObjectId();
+            user = await new User({
+                email: "hej",
+                password: "yo",
+                adminOnBuildings: [buildingId],
+                role: 1
+            }).save();
+
+
+            newUser = await new User({
+                email: "hej",
+                password: "yo",
+                adminOnBuildings: [],
+                role: 1
+            }).save();
+            newUserId = newUser.id;
+
+            token = user.generateAuthToken();
+        });
+
+        const exec = () => {
+            return request(server)
+              .patch("/api/users/makeadmin")
+              .set('x-auth-token', token)
+              .send({
+                  userId: newUserId,
+                  buildingId: buildingId
+              });
+        };
+
+        it("Should return 403 if user was not admin on building", async () => {
+            user.adminOnBuildings = [];
+            await user.save();
+
+            await expect(exec()).to.be.rejectedWith("Forbidden");
+        });
+
+        it("Should return 401 if no token provided", async () => {
+            token = null;
+            await expect(exec()).to.be.rejectedWith("Unauthorized");
+        });
+
+        it("Should return updated user with adminOnBuildings updated", async () => {
+            const res = await exec();
+            expect(res.body.adminOnBuildings[0]).to.equal(user.adminOnBuildings[0].toString());
+        });
+
     });
 });
