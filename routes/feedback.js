@@ -56,8 +56,21 @@ router.post('/', auth, async (req, res) => {
 router.get('/', auth, async (req, res) => {
     const query = feedbackQuery(req.query, req.user._id);
     if (!query) return res.status(400).send("Invalid query parameter");
+
+    if (req.query.building) {
+
+        const rooms = await Room.find({building: req.query.building});
+        const roomIds = [];
+        for (let i = 0; i < rooms.length; i++) {
+            roomIds.push(rooms[i].id);
+        }
+        query.room = {$in: roomIds};
+    }
+
     console.log(query);
-    const feedback = await Feedback.find(query).populate("answer");
+    const feedback = await Feedback.find(query)
+      .populate("answer")
+      .populate("question");
 
     res.send(feedback);
 });
@@ -122,6 +135,7 @@ function feedbackQuery(query, userId) {
         if (!mongoose.Types.ObjectId.isValid(query.room)) return null;
         feedbackQuery.room = query.room;
     }
+
 
     switch (query.t) {
         case "hour":

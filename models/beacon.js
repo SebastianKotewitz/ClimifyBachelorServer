@@ -28,11 +28,12 @@ const beaconSchema = new mongoose.Schema({
 const Beacon = mongoose.model('Beacon', beaconSchema);
 
 function validateBeacon(beacon) {
-
     const schema = {
         buildingId: Joi.objectId().required(),
         name: Joi.string().min(1).max(255).required(),
-        uuid: Joi.string().regex(/^[a-zA-Z\d]{8}-[a-zA-Z\d]{4}-[a-zA-Z\d]{4}-[a-zA-Z\d]{4}-[a-zA-Z\d]{12}$/).required()
+        uuid: Joi.string()
+          .regex(/^[a-zA-Z\d]{8}-[a-zA-Z\d]{4}-[a-zA-Z\d]{4}-[a-zA-Z\d]{4}-[a-zA-Z\d]{12}$/)
+          .required()
     };
 
     return Joi.validate(beacon, schema);

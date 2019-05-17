@@ -1,7 +1,8 @@
-const {Room} = require("../models/room");
+const {Room, validate} = require("../models/room");
 const {Question} = require("../models/question");
 const {User} = require("../models/user");
 const {Feedback} = require("../models/feedback");
+const {Building} = require("../models/building");
 
 const createRoom = async (req, res) => {
     const {error} = validate(req.body);
@@ -21,6 +22,13 @@ const createRoom = async (req, res) => {
 
     await room.save();
     res.send(room);
+};
+const getRoomsFromBuilding = async (req, res) => {
+    const buildingId = req.params.id;
+    if (!req.user.adminOnBuildings.find(elem => elem.toString() === buildingId))
+        return res.status(403).send("User was not admin on building with id " + buildingId);
+    const rooms = await Room.find({building: buildingId});
+    res.send(rooms);
 };
 
 const deleteRoom = async (req, res) => {
@@ -91,3 +99,4 @@ const getRooms = async (req, res) => {
 module.exports.deleteRoom = deleteRoom;
 module.exports.getRooms = getRooms;
 module.exports.createRoom = createRoom;
+module.exports.getRoomsFromBuilding = getRoomsFromBuilding;

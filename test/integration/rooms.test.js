@@ -130,6 +130,8 @@ describe('/api/rooms', () => {
             buildingId = building.id;
             room = new Room({name: "222", location: "123", building: building._id});
             let room2 = new Room({name: "221", location: "456", building: mongoose.Types.ObjectId()});
+            user.adminOnBuildings = [buildingId];
+            await user.save();
             token = user.generateAuthToken();
             await building.save();
             await room.save();
@@ -145,6 +147,12 @@ describe('/api/rooms', () => {
         it("Should only return 1 room", async () => {
             const res = await exec();
             expect(res.body.length).to.equal(1);
+        });
+
+        it("Should return 403 if user was not admin on building", async () => {
+            user.adminOnBuildings = [];
+            await user.save();
+            await expect(exec()).to.be.rejectedWith("Forbidden");
         });
     });
 

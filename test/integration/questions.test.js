@@ -407,8 +407,6 @@ describe('/api/questions', () => {
             const res = await exec();
             expect(res.body.answerOptions[0].value).to.equal("hej hej");
         });
-
-
     });
 
     describe("PATCH /:id change isActive of question", () => {
