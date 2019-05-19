@@ -67,7 +67,6 @@ router.get('/', auth, async (req, res) => {
         query.room = {$in: roomIds};
     }
 
-    console.log(query);
     const feedback = await Feedback.find(query)
       .populate("answer")
       .populate("question");

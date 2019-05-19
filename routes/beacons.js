@@ -14,8 +14,6 @@ router.post('/', [auth, authorized], async (req, res) => {
         return res.status(400).send(e.message);
     }
 
-
-    console.log(req.user.role);
     if (req.user.role < 1) return res.status(403).send("Forbidden. User should be authorized");
 
     let {buildingId, name, uuid} = req.body;
@@ -28,8 +26,8 @@ router.post('/', [auth, authorized], async (req, res) => {
         name,
         uuid
     });
-
     await beacon.save();
+
     res.send(_.pick(beacon, ["_id", "building", "name", "uuid"]));
 });
 
