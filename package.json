@@ -5,7 +5,10 @@
   "main": "index.js",
   "proxy": "http://localhost:3000",
   "scripts": {
-    "test": "NODE_ENV=test mocha --recursive"
+    "test": "NODE_ENV=test mocha --recursive",
+    "client": "cd client && yarn start",
+    "server": "nodemon server.js",
+    "dev": "concurrently --kill-others-on-fail \"yarn server\" \"yarn client\""
   },
   "keywords": [],
   "author": "",
@@ -31,6 +34,7 @@
   },
   "devDependencies": {
     "chai": "^4.2.0",
+    "concurrently": "^4.1.0",
     "mocha": "^6.0.2",
     "nyc": "^13.3.0",
     "supertest": "^4.0.0"

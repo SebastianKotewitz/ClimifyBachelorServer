@@ -34,7 +34,7 @@ morgan.token("reqBody", (req) => `Req body: ${JSON.stringify(req.body)}`);
 app.use(morgan("dev"));
 app.use(morgan(":reqBody", {immediate: true}));
 
-const port = config.get('port') || 3000;
+const port = config.get('port') || 80;
 
 const logger = require('./startup/logger');
 
