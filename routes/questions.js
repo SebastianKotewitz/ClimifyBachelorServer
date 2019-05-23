@@ -79,7 +79,7 @@ router.get('/', auth, async (req, res) => {
     const questions = await Question.find({
         rooms: room.id
     });
-    if (query.withTimesAnswered){
+    if (query.withTimesAnswered) {
         for (let i = 0; i < questions.length; i++) {
             const feedback = await Feedback.find({question: questions[i].id});
             questions[i].timesAnswered = feedback.length;
@@ -93,8 +93,6 @@ router.get('/', auth, async (req, res) => {
             }
         }
     }
-
-
 
     res.send(questions);
 });

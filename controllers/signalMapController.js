@@ -57,14 +57,17 @@ const createSignalMap = async (req, res) => {
             return res.status(400).send("There is already a signalmap for the given room");
     }
 
+
+
     let signalMap = new SignalMap({
         room: roomId || estimatedRoomId,
         beacons,
         isActive: !!roomId
     });
-    signalMap = await signalMap.save();
+
+    if (signalMap.isActive)
+        signalMap = await signalMap.save();
     signalMap.room = room;
-    console.log("returned", signalMap);
     res.send(signalMap);
 };
 
