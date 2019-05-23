@@ -22,7 +22,8 @@ const feedbackSchema = new mongoose.Schema({
     type: mongoose.Types.ObjectId,
     required: true,
     ref: 'Answer'
-  }
+  },
+  timesAnswered: Number
 }, {timestamps: true});
 
 const Feedback = mongoose.model('Feedback', feedbackSchema);

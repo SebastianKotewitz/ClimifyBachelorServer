@@ -2,6 +2,7 @@ const express = require('express');
 const router = express.Router();
 const {Question, validate} = require('../models/question');
 const {Answer} = require('../models/answer');
+const {Feedback} = require('../models/feedback');
 const _ = require('lodash');
 const {Room} = require('../models/room');
 const {Building} = require('../models/building');
@@ -62,6 +63,9 @@ router.post('/', [auth], async (req, res) => {
 });
 
 router.get('/', auth, async (req, res) => {
+    const query = req.query;
+
+
     const roomId = req.header('roomId');
     if (!roomId) return res.status(400).send('No room id provided');
 
@@ -75,6 +79,23 @@ router.get('/', auth, async (req, res) => {
     const questions = await Question.find({
         rooms: room.id
     });
+    if (query.withTimesAnswered){
+        for (let i = 0; i < questions.length; i++) {
+            const feedback = await Feedback.find({question: questions[i].id});
+            questions[i].timesAnswered = feedback.length;
+            for (let j = 0; j < questions[i].answerOptions.length; j++) {
+                questions[i].answerOptions[j].timesAnswered = 0;
+                for (let k = 0; k < feedback.length; k++) {
+                    if (feedback[k].answer.toString() === questions[i].answerOptions[j].id.toString())
+                        questions[i].answerOptions[j].timesAnswered++;
+
+                }
+            }
+        }
+    }
+
+
+
     res.send(questions);
 });
 
