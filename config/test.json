@@ -1,5 +1,5 @@
 {
-  "name": "Climify - test",
-  "db": "mongodb://localhost/climify_tests",
+  "name": "Feedme - test",
+  "db": "mongodb://localhost/feedme_tests",
   "port": 8080
 }
