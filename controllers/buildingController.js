@@ -104,6 +104,7 @@ const createBuilding = async (req, res) => {
         name
     });
 
+
     admin.adminOnBuildings.push(building._id);
     await admin.save();
     await building.save();
