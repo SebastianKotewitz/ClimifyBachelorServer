@@ -1,5 +1,5 @@
 {
   "name": "Climify",
   "db": "mongodb://localhost/climify",
-  "port": 3000
+  "port": 80
 }
