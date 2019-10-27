@@ -1,5 +1,5 @@
 const _ = require('lodash');
-const bcrypt = require("bcrypt");
+const bcrypt = require("bcryptjs");
 const {User, validate, validateAuthorized} = require('../models/user');
 const StatusError = require("../errors/statusError");
 

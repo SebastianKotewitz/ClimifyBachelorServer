@@ -5,7 +5,7 @@ const expect = require("chai").expect;
 const app = require('../..');
 let server;
 const config = require('config');
-const bcrypt = require("bcrypt");
+const bcrypt = require("bcryptjs");
 const mongoose = require('mongoose');
 
 
