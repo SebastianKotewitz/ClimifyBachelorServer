@@ -35,6 +35,8 @@ app.use(morgan("dev"));
 app.use(morgan(":reqBody", {immediate: true}));
 
 const port = config.get('port') || 80;
+const baseUrl = config.get("base-url") || "/api/";
+
 
 const logger = require('./startup/logger');
 
@@ -55,14 +57,14 @@ if (process.env.NODE_ENV !== 'test')
 app.use(express.json());
 
 app.use(endMiddleware);
-app.use('/api/feedback/', feedback);
-app.use('/api/users', users);
-app.use('/api/rooms', rooms);
-app.use('/api/beacons', beacons);
-app.use('/api/questions', questions);
-app.use('/api/buildings', buildings);
-app.use('/api/auth', auth);
-app.use('/api/signalMaps', signalMaps);
+app.use(baseUrl + 'feedback/', feedback);
+app.use(baseUrl + 'users', users);
+app.use(baseUrl + 'rooms', rooms);
+app.use(baseUrl + 'beacons', beacons);
+app.use(baseUrl + 'questions', questions);
+app.use(baseUrl + 'buildings', buildings);
+app.use(baseUrl + 'auth', auth);
+app.use(baseUrl + 'signalMaps', signalMaps);
 app.use(error);
 
 module.exports = app;
