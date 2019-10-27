@@ -1,6 +1,7 @@
 const _ = require('lodash');
 const bcrypt = require("bcrypt");
 const {User, validate, validateAuthorized} = require('../models/user');
+const StatusError = require("../errors/statusError");
 
 const getUsers = async (req, res) => {
     const users = await User.find(null, "_id email role adminOnBuilding");
@@ -25,6 +26,7 @@ const makeUserAdmin = async (req, res) => {
 
 const createUser = async (req, res) => {
 
+    // throw new StatusError("hej", 404);
     let user;
 
     if (req.body.email) {

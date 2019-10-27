@@ -1,3 +1,5 @@
+const StatusError = require("../errors/statusError");
+
 module.exports = function (err, req, res, next) {
     /* Here we use winston library to log errors
     * First argument is logging level if you use winston.log.
@@ -8,6 +10,9 @@ module.exports = function (err, req, res, next) {
     //winston.error(err.message, err);
     if (typeof err === "ValidationError") {
         console.log("heeej validation error ");
+    }
+    if (err instanceof StatusError){
+        return res.status(err.status).send(err.message);
     }
 
     console.log(err);

@@ -1,3 +1,5 @@
 {
-  "name": "Feedme - development"
+  "name": "Feedme - development",
+  "db": "mongodb://localhost/feedme-dev",
+  "port": 8082
 }
