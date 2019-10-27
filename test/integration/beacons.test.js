@@ -138,4 +138,53 @@ describe('/api/beacons', () => {
         });
     });
 
+    describe("DELETE /:id", () => {
+
+        let id;
+
+        const exec = () => {
+            return request(server)
+              .delete('/api/beacons/' + id)
+              .set("x-auth-token", token);
+        };
+
+        beforeEach(async () => {
+            user.adminOnBuildings = [building._id];
+            const beacon = await new Beacon({
+                name: "hej",
+                building: building.id,
+                uuid: "f7826da6-4fa2-4e98-8024-bc5b71e0893b"
+            }).save();
+
+            id = beacon.id;
+
+            await user.save();
+            token = user.generateAuthToken();
+        });
+
+        it("Should return 403 if role not sufficient", async () => {
+            user.role = 0;
+            await user.save();
+            await expect(exec()).to.be.rejectedWith("Forbidden");
+        });
+
+        it("Should return 403 if not admin on building with beacon", async () => {
+            user.adminOnBuildings = [];
+            await user.save();
+            await expect(exec()).to.be.rejectedWith("Forbidden");
+        });
+
+        it("Should return 404 if beacon not found", async () => {
+            id = mongoose.Types.ObjectId();
+            await expect(exec()).to.be.rejectedWith("Not Found");
+        });
+
+        it("Should succesfully delete beacon", async () => {
+            await exec();
+            const beacon = await Beacon.find({});
+            expect(beacon.length).to.equal(0);
+        });
+
+    })
+
 });

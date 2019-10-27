@@ -31,9 +31,19 @@ router.post('/', [auth, authorized], async (req, res) => {
     res.send(_.pick(beacon, ["_id", "building", "name", "uuid"]));
 });
 
-router.delete("/:id", async (req, res) => {
+router.delete("/:id", [auth, authorized], async (req, res) => {
 
-    const beacon = await Beacon.deleteOne({_id: req.params.id});
+    const user = req.user;
+
+
+    const beacon = await Beacon.findById(req.params.id);
+    if (!beacon) return res.status(404).send("No beacon with id found");
+
+    if (!user.adminOnBuildings.find(elem => elem.toString() === beacon.building.toString()))
+        return res.status(403).send("User was not admin on building with beacon");
+
+    await Beacon.deleteOne({_id: req.params.id});
+
     res.send(beacon);
 });
 
