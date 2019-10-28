@@ -4,18 +4,17 @@ const {Room} = require('../../models/room');
 const {Question} = require('../../models/question');
 const {Feedback} = require('../../models/feedback');
 const {SignalMap} = require('../../models/signalMap');
-const request = require('supertest');
-let assert = require('assert');
-const app = require('../..');
-let server;
-const config = require('config');
-const mongoose = require('mongoose');
 const logger = require('../../startup/logger');
+const config = require('config');
+const app = require('../..');
+let assert = require('assert');
+const request = require('supertest');
+let server;
+const mongoose = require('mongoose');
 const chai = require("chai");
 const chaiAsPromised = require("chai-as-promised");
 chai.use(chaiAsPromised);
 const expect = require('chai').expect;
-
 
 describe('/api/rooms', () => {
     let user;

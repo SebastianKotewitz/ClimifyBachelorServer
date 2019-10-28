@@ -9,6 +9,7 @@ const feedback = require('./routes/feedback');
 const mongoose = require('mongoose');
 const users = require('./routes/users');
 const rooms = require('./routes/rooms');
+const general = require('./routes/general');
 const questions = require('./routes/questions');
 const beacons = require('./routes/beacons');
 const buildings = require('./routes/buildings');
@@ -65,6 +66,7 @@ app.use(baseUrl + 'questions', questions);
 app.use(baseUrl + 'buildings', buildings);
 app.use(baseUrl + 'auth', auth);
 app.use(baseUrl + 'signalMaps', signalMaps);
+app.use(baseUrl + 'general', general);
 app.use(error);
 
 module.exports = app;
