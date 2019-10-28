@@ -51,7 +51,7 @@ module.exports = class KnnManager {
         while (knnTied.tied) {
             k--;
             nearestPoints = this.nearestNeighbors(newPoint, nearestPoints, k);
-            typeCounterMap = this.typeCountMap(nearestPoints)
+            typeCounterMap = this.typeCountMap(nearestPoints);
             knnTied = this.isKnnTied(typeCounterMap);
         }
 

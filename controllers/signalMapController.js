@@ -52,9 +52,11 @@ const createSignalMap = async (req, res) => {
         if (!req.user.adminOnBuildings.find(elem => room.building.toString() === elem.toString()))
             return res.status(403).send("User was not admin on building containing room " + roomId);
 
-        const signalMap = await SignalMap.findOne({room: roomId});
-        if (signalMap)
+        /*const signalMap = await SignalMap.findOne({room: roomId});
+        if (signalMap){
             return res.status(400).send("There is already a signalmap for the given room");
+        }*/
+
     }
 
 

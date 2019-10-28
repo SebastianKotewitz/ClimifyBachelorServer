@@ -528,7 +528,6 @@ describe('/api/signalMaps', () => {
             await expect(exec()).to.be.rejectedWith("Bad Request");
         });
 
-
         it("Should return new signalmap with one length array of beacons", async () => {
             const res = await exec();
             expect(res.body.beacons.length).to.equal(1);
@@ -547,7 +546,6 @@ describe('/api/signalMaps', () => {
 
             await expect(exec()).to.be.rejectedWith("Bad Request");
         });
-
 
         it("Should return 400 if one of the rssi arrays did not have the same length as the other's", async () => {
             let newBeacon = new Beacon({
@@ -595,6 +593,19 @@ describe('/api/signalMaps', () => {
             roomId = undefined;
             const res = await exec();
             expect(res.body.room._id).to.equal(signalMap.room.toString());
+        });
+
+        it("Should throw error if only inactive signalmaps are available and roomId not provided", async () => {
+            const signalMap = new SignalMap({
+                beacons: [{
+                    _id: beaconId,
+                    signals: [39, 41]
+                }],
+                room: roomId,
+                isActive: false
+            });
+            roomId = undefined;
+            await expect(exec()).to.be.rejectedWith("Bad Request");
         });
 
         it("Should estimate correct room when nearest neighbor is a tie", async () => {
@@ -715,7 +726,7 @@ describe('/api/signalMaps', () => {
             expect(res.body.room._id.toString()).to.equal(roooom);
         });
 
-        it("Should return 400 if no signalmap was posted an a room estimation was requested", async () => {
+        it("Should return 400 if no signalmap was posted and a room estimation was requested", async () => {
             await SignalMap.deleteMany();
             roomId = undefined;
             await expect(exec()).to.be.rejectedWith("Bad Request");
@@ -745,6 +756,48 @@ describe('/api/signalMaps', () => {
 
             buildingId = undefined;
             await expect(exec()).to.be.rejectedWith("Forbidden");
+        });
+
+        it("Should take all signal maps with the same room id into account when estimating room", async () => {
+
+        });
+
+        it("Should merge if two signalMaps was posted to same room", async () => {
+            const room2 = await new Room({
+                name: "223",
+                building: buildingId
+            }).save();
+
+            await new SignalMap({
+                beacons: [{
+                    _id: beaconId,
+                    signals: [-38, -42]
+                }],
+                room: roomId,
+                isActive: true
+            }).save();
+
+            await new SignalMap({
+                beacons: [{
+                    _id: beaconId,
+                    signals: [-36, -45]
+                }],
+                room: room2.id,
+                isActive: true
+            }).save();
+
+            await new SignalMap({
+                beacons: [{
+                    _id: beaconId,
+                    signals: [-39, -41]
+                }],
+                room: room2.id,
+                isActive: true
+            }).save();
+            roomId = undefined;
+
+            const res = await exec();
+            expect(res.body.room._id.toString()).to.equal(room2.id);
         });
 
     });
