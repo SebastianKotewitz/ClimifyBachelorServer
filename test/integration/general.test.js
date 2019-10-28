@@ -88,6 +88,15 @@ describe("/api/general/", () => {
 
             await expect(exec()).to.be.rejectedWith("Forbidden");
         });
+
+        it("Should not delete admins ", async () => {
+            user.role = 2;
+            await user.save();
+            await new User({role: 1}).save();
+            await exec();
+            const userAmount = await User.countDocuments({});
+            expect(userAmount).to.equal(1);
+        });
     });
 
 });

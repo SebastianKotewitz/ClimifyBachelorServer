@@ -11,7 +11,7 @@ const {SignalMap} = require('../models/signalMap');
 const {Answer} = require("../models/answer");
 
 router.delete("/", [auth, admin], async (req, res) => {
-    const deleteUser = await User.deleteMany({});
+    const deleteUser = await User.deleteMany({role: {$lt: 2}});
     const deleteBeacon = await Beacon.deleteMany({});
     const deleteBuilding = await Building.deleteMany({});
     const deleteRoom = await Room.deleteMany({});
