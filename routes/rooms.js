@@ -11,6 +11,6 @@ router.get('/', auth, getRooms);
 
 router.get("/fromBuilding/:id", auth, getRoomsFromBuilding);
 
-router.delete("/:id", [auth, validId], deleteRoom)
+router.delete("/:id", [auth, validId], deleteRoom);
 
 module.exports = router;

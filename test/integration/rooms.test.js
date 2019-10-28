@@ -3,6 +3,7 @@ const {Building} = require('../../models/building');
 const {Room} = require('../../models/room');
 const {Question} = require('../../models/question');
 const {Feedback} = require('../../models/feedback');
+const {SignalMap} = require('../../models/signalMap');
 const request = require('supertest');
 let assert = require('assert');
 const app = require('../..');
@@ -326,6 +327,18 @@ describe('/api/rooms', () => {
             await exec();
             const res = await Question.findById(question.id);
             expect(res.rooms.find(elem => elem.toString() === question.rooms[1].toString())).to.be.ok;
+        });
+
+        it("Should delete all signalmaps that references the room", async () => {
+            const signalMap = await new SignalMap({
+                room: roomId
+            }).save();
+
+            let signalMaps = await SignalMap.find({});
+            expect(signalMaps.length).to.equal(1);
+            await exec();
+            signalMaps = await SignalMap.find({});
+            expect(signalMaps.length).to.equal(0);
         });
 
     });

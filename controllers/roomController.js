@@ -3,6 +3,7 @@ const {Question} = require("../models/question");
 const {User} = require("../models/user");
 const {Feedback} = require("../models/feedback");
 const {Building} = require("../models/building");
+const {SignalMap} = require("../models/signalMap");
 
 const createRoom = async (req, res) => {
     const {error} = validate(req.body);
@@ -51,7 +52,11 @@ const deleteRoom = async (req, res) => {
             questions[i].rooms.splice(index, 1);
             await questions[i].save();
         }
+    }
+    const signalMaps = await SignalMap.find({room: room.id});
 
+    for (let i = 0; i < signalMaps.length; i++) {
+        await signalMaps[i].remove();
     }
 
     await room.remove();
