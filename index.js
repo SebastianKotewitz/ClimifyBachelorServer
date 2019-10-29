@@ -31,9 +31,11 @@ app.use(function(req, res, next) {
 });
 
 app.use(bodyParser.json());
-morgan.token("reqBody", (req) => `Req body: ${JSON.stringify(req.body)}`);
-app.use(morgan("dev"));
-app.use(morgan(":reqBody", {immediate: true}));
+
+
+// morgan.token("reqBody", (req) => `Req body: ${JSON.stringify(req.body)}`);
+// app.use(morgan("dev"));
+// app.use(morgan(":reqBody", {immediate: true}));
 
 const port = config.get('port') || 80;
 const baseUrl = config.get("base-url") || "/api/";
