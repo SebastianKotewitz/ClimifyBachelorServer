@@ -112,7 +112,7 @@ class Building extends Component {
                 const badgeColor = isActive ? "badge-light" : "badge-primary";
                 const buttonColor = isActive ? "btn-light" : "btn-primary";
                 let path = "/buildings/" + this.props.match.params.id + "/rooms/" + rooms[i]._id;
-                console.log("path", path);
+
                 items.push(<div>
                     <NavLink key={i} onClick={() => this.openRoom(rooms[i])} to={path}
                              className="list-group-item d-flex flex-row list-group-item-action justify-content-between">

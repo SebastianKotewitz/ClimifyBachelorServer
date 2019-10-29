@@ -81,7 +81,6 @@ class Room extends Component {
     };
 
     handleQuestionActiveChange = (questionId, activeStatus) => {
-        console.log("hejjjj");
         questionActions.setActive(questionId, activeStatus);
     };
 }

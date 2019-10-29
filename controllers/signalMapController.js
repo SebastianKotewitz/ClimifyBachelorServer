@@ -44,7 +44,6 @@ const createSignalMap = async (req, res) => {
         for (let i = 0; i < serverBeacons.length; i++) {
             beaconIds.push(serverBeacons[i]._id);
         }
-        console.log("bids", beaconIds);
         estimatedRoomId = await estimateNearestNeighbors(beacons, signalMaps, 3, beaconIds);
         room = await Room.findById(estimatedRoomId);
     } else {

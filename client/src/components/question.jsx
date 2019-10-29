@@ -4,7 +4,7 @@ import PropTypes from 'prop-types';
 const Question = props => {
     const {questionKey, active, onChange, value, answerOptions, timesAnswered, feedback} = props;
     const items = [];
-    console.log("answerOptions", answerOptions);
+
     if (answerOptions)
         for (let i = 0; i < answerOptions.length; i++) {
             items.push(<div key={i} className="list-group-item d-flex justify-content-between">

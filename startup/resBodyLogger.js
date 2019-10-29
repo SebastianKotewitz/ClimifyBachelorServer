@@ -14,8 +14,6 @@ module.exports = endMiddleware = (req, res, next) => {
         }
         const body = "Res body: " + Buffer.concat(chunks).toString('utf8');
 
-        console.log(body);
-
         defaultEnd.apply(res, restArgs);
     };
 

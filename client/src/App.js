@@ -62,7 +62,6 @@ class App extends Component {
 
     getBuildings = () => {
         const buildings = buildingsStore.getBuildings();
-        console.log("buildings", buildings);
         if (this.state.loggedIn) {
             this.setState({buildings});
         }

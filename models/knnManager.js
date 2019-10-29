@@ -40,7 +40,6 @@ module.exports = class KnnManager {
         if (newPoint.type !== undefined)
             throw new IllegalArgumentError("New point should not have a type");
 
-        console.log(newPoint);
         let nearestPoints = this.nearestNeighbors(newPoint, this.points, this.k);
 
         let typeCounterMap = this.typeCountMap(nearestPoints);

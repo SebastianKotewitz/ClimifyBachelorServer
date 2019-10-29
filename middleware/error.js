@@ -9,13 +9,12 @@ module.exports = function (err, req, res, next) {
     * the next arguments are all objects to be stored with the log message */
     //winston.error(err.message, err);
     if (typeof err === "ValidationError") {
-        console.log("heeej validation error ");
+
     }
     if (err instanceof StatusError){
         return res.status(err.status).send(err.message);
     }
 
-    console.log(err);
     if (err.name === 'ValidationError') {
         return res.status(500).send("Database validation failed. " + err.message);
     }

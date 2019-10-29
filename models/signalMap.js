@@ -28,11 +28,10 @@ function alignAndFillArrays(alignedBeaconIds, unAlignedBeacons) {
     if (!alignedBeaconIds || alignedBeaconIds.length <=0)
         throw new IllegalArgumentError("alignedBeaconIds should be at least one-length array");
     const alignedBeacons = new Array(alignedBeaconIds.length);
-    console.log("unaligned", unAlignedBeacons);
-    console.log("unaligned", unAlignedBeacons[0]);
+
     const signalLength = unAlignedBeacons[0].signals.length;
 
-    console.log(unAlignedBeacons);
+
     for (let i = 0; i < alignedBeaconIds.length; i++) {
         const beacon = unAlignedBeacons
           .find(beacon => {
@@ -99,9 +98,6 @@ function estimateNearestNeighbors(clientBeacons, signalMaps, k, beaconIds) {
     if (!k)
         k = 3;
 
-    console.log('signalmaps: ', signalMaps);
-    console.log('clientb: ', clientBeacons);
-    console.log("idds", beaconIds);
 
     const initialPoints = [];
     for (let i = 0; i < signalMaps.length; i++) {
@@ -122,7 +118,6 @@ function estimateNearestNeighbors(clientBeacons, signalMaps, k, beaconIds) {
         k = initialPoints.length;
 
     const dimension = beaconIds.length;
-    console.log(initialPoints);
     const knnManager = new KnnManager(dimension, initialPoints, k);
 
     const newPointVector = [];
