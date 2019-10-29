@@ -59,7 +59,7 @@ if (process.env.NODE_ENV !== 'test')
 
 app.use(express.json());
 
-app.use(endMiddleware);
+// app.use(endMiddleware);
 app.use(baseUrl + 'feedback/', feedback);
 app.use(baseUrl + 'users', users);
 app.use(baseUrl + 'rooms', rooms);
