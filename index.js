@@ -50,11 +50,11 @@ if (!process.env.jwtPrivateKey) {
 
 if (process.env.NODE_ENV !== 'test')
 {
-    app.listen(port, () => logger.info(`Listening on port ${port}...`));
+    app.listen(port, () => console.log(`Listening on port ${port}...`));
     const db = config.get('db');
     mongoose.connect(db, {useNewUrlParser: true})
-        .then(() => logger.info(`Connected to ${db}...`))
-        .catch(err => logger.info('Could not connect to MongoDB...', err));
+        .then(() => console.log(`Connected to ${db}...`))
+        .catch(err => console.log('Could not connect to MongoDB...', err));
 }
 
 app.use(express.json());
