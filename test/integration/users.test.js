@@ -159,7 +159,7 @@ describe('/api/users', () => {
         });
     });
 
-    describe("PATCH /makeAdmin", () => {
+    describe("PATCH /makeBuildingAdmin", () => {
         let newUser;
         let newUserId;
         let buildingId;
@@ -187,7 +187,7 @@ describe('/api/users', () => {
 
         const exec = () => {
             return request(server)
-              .patch("/api/users/makeadmin")
+              .patch("/api/users/makeBuildingAdmin")
               .set('x-auth-token', token)
               .send({
                   userId: newUserId,
