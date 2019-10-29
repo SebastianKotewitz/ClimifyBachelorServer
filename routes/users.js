@@ -9,6 +9,6 @@ router.get('/', [auth, admin], userController.getUsers);
 
 router.patch('/makeBuildingAdmin', auth, userController.makeUserAdmin);
 
-router.
+
 
 module.exports = router;
