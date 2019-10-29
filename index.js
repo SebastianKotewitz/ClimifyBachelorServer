@@ -41,7 +41,7 @@ const port = config.get('port') || 80;
 const baseUrl = config.get("base-url") || "/api/";
 
 
-const logger = require('./startup/logger');
+// const logger = require('./startup/logger');
 
 if (!process.env.jwtPrivateKey) {
     console.error("FATAL ERROR: jwtPrivateKey not set");
