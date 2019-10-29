@@ -28,7 +28,7 @@ const createSignalMap = async (req, res) => {
         for (let i = 0; i < signalMaps.length; i++) {
             const room = await Room.findById(signalMaps[i].room);
             if (!room) {
-                return res.status(400).send("Room was not defined: " + signalMaps[i].room);
+                return res.status(400).send("Room was not defined: " + signalMaps[i].id);
             }
 
             if (room.building.toString() !== buildingId.toString()) {
