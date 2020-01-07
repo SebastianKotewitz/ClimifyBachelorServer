@@ -39,8 +39,6 @@ router.post('/', [auth], async (req, res) => {
         } else if (tempBuilding !== building) {
             return res.status(400).send('Questions were posted in rooms of different buildings, which is not allowed');
         }
-
-
     }
 
     let question = new Question({
@@ -64,8 +62,7 @@ router.post('/', [auth], async (req, res) => {
 
 router.get('/', auth, async (req, res) => {
     const query = req.query;
-
-
+    const user = req.user;
     const roomId = req.header('roomId');
     if (!roomId) return res.status(400).send('No room id provided');
 
@@ -76,7 +73,7 @@ router.get('/', auth, async (req, res) => {
     if (!room) return res.status(404).send(`Room with id ${roomId} was not found`);
 
     // const questions = await Question.find({room: room._id});
-    const questions = await Question.find({
+    var questions = await Question.find({
         rooms: room.id
     });
     if (query.withTimesAnswered) {
@@ -88,10 +85,19 @@ router.get('/', auth, async (req, res) => {
                 for (let k = 0; k < feedback.length; k++) {
                     if (feedback[k].answer.toString() === questions[i].answerOptions[j].id.toString())
                         questions[i].answerOptions[j].timesAnswered++;
-
                 }
             }
         }
+    }
+    if (query.notAnswered) {
+        console.log(questions.length);
+        questions = questions.filter(q => {
+            for (let userId of q.usersAnswered) {
+                if (user._id.toString() === userId.toString())
+                    return false;
+            }
+            return true;
+        });
     }
 
     res.send(questions);

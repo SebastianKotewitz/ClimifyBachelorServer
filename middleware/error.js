@@ -15,6 +15,7 @@ module.exports = function (err, req, res, next) {
         return res.status(err.status).send(err.message);
     }
 
+    console.log(err.toString());
     if (err.name === 'ValidationError') {
         return res.status(500).send("Database validation failed. " + err.message);
     }

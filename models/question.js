@@ -35,7 +35,10 @@ const questionSchema = new mongoose.Schema(
           required: true,
           validate: [(val) => val.length >= 2 && Array.isArray(val),
               "Question should have at least two answer options"]
-      }
+      },
+      usersAnswered: {
+          type: [mongoose.Schema.ObjectId]
+      },
   });
 
 const Question = mongoose.model('Question', questionSchema);

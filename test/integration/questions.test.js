@@ -48,10 +48,12 @@ describe('/api/questions', () => {
         let token;
         let answerOption1;
         let answerOption2;
+        let queryString;
+        let question;
 
         const exec = () => {
             return request(server)
-              .get('/api/questions')
+              .get('/api/questions' + queryString)
               .set({'x-auth-token': token, 'roomId': roomId});
         };
 
@@ -59,6 +61,7 @@ describe('/api/questions', () => {
             building = new Building({name: '12345'});
             await building.save();
             buildingId = building._id;
+            queryString = "";
 
             room = new Room({
                 building: buildingId,
@@ -73,7 +76,7 @@ describe('/api/questions', () => {
             answerOption2 = new Answer({value: "hej2"});
             await answerOption1.save();
             await answerOption2.save();
-            const question = new Question({
+            question = new Question({
                 value: "12345",
                 rooms: [roomId],
                 answerOptions: [answerOption1, answerOption2]
@@ -171,6 +174,15 @@ describe('/api/questions', () => {
             const res = await exec();
             expect(res.body[0].answerOptions[0]._id).to.equal(answerOption1.id);
         });
+
+        it("Should only return question which user hasn't answered", async () => {
+            queryString = "/?notAnswered=true";
+            question.usersAnswered.push(user._id);
+            await question.save();
+
+            const res = await exec();
+            expect(res.body.length).to.equal(0);
+        })
     });
 
     describe("GET /active", () => {

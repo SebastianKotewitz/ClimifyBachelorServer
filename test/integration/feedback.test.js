@@ -170,6 +170,21 @@ describe('/api/feedback', () => {
                 throw e;
             }
         });
+
+        it("Should add user to usersAnswered list of question", async () => {
+            await exec();
+            const q = await Question.findById(questionId);
+            expect(q.usersAnswered[0].toString()).to.equal(user.id);
+        });
+
+        it("Should not be allowed (400) for users to answer question which are already on usersAnswered list", async () => {
+
+            question.usersAnswered.push(user.id);
+            await question.save();
+            await expect(exec()).to.be.rejectedWith("Bad Request");
+
+        });
+
     });
 
     /*describe(' GET /roomFeedback/:id', () => {
