@@ -32,10 +32,10 @@ router.post('/', auth, async (req, res) => {
     const question = await Question.findById(questionId);
     if (!question) return res.status(404).send("Question with id " + questionId + " was not found");
 
-    for (let i = 0; i < question.rooms.length; i++) {
-        if (question.rooms[i].toString() !== roomId)
-            return res.status(400).send("Question was not from the same room as the feedback given");
-    }
+    const qs = question.rooms.filter( room => room.toString() === roomId);
+    if (qs.length < 1)
+        return res.status(400).send("Question was not from the same room as the feedback given");
+
 
     let feedback = new Feedback(
       {

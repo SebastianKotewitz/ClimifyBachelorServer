@@ -161,6 +161,18 @@ describe('/api/feedback', () => {
             await expect(exec()).to.be.rejectedWith("Bad Request");
         });
 
+        it("Should be ok if question was posted to other rooms as well", async () => {
+          question.rooms.push(mongoose.Types.ObjectId());
+          await question.save();
+          try {
+              const res = await exec();
+              expect(res.status).to.be.equal(200);
+          } catch (e) {
+              logger.error(e.response.text);
+              throw e;
+          }
+        });
+
         it('should return 200 if all fields provided correctly', async () => {
             try {
                 const res = await exec();
