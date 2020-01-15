@@ -69,6 +69,7 @@ if (process.env.NODE_ENV !== "production") {
 
     app.use(endMiddleware);
 } else {
+    app.use(morgan("dev"));
     app.use(morgan(":reqBody", {
         stream: logger.streamError,
         skip: (req, res) => res.statusCode < 400 || req.url.includes("/users/") // To avoid logging sensitive info
