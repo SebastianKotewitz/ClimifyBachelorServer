@@ -13,7 +13,6 @@ module.exports = endMiddleware = (req, res, next) => {
             chunks.push(Buffer.from(restArgs[0]));
         }
         const body = "Res body: " + Buffer.concat(chunks).toString('utf8');
-
         console.log(body);
 
         defaultEnd.apply(res, restArgs);

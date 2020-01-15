@@ -26,7 +26,6 @@ const makeUserAdmin = async (req, res) => {
 
 const createUser = async (req, res) => {
 
-    // throw new StatusError("hej", 404);
     let user;
 
     if (req.body.email) {

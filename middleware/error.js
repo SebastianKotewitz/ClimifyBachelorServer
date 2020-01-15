@@ -1,4 +1,5 @@
 const StatusError = require("../errors/statusError");
+const logger = require("../startup/logger");
 
 module.exports = function (err, req, res, next) {
     /* Here we use winston library to log errors
@@ -11,15 +12,15 @@ module.exports = function (err, req, res, next) {
     if (typeof err === "ValidationError") {
 
     }
+
+
     if (err instanceof StatusError){
+        logger.error("Status " + err.status + " - " + err.message);
         return res.status(err.status).send(err.message);
     }
 
-    console.log(err.toString());
-    if (err.name === 'ValidationError') {
-        return res.status(500).send("Database validation failed. " + err.message);
-    }
-
-    res.status(500).send('Something failed' + err.name);
+    const errorMessage = err.toString();
+    logger.error(errorMessage);
+    res.status(500).send(errorMessage);
     next();
 };
