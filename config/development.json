@@ -1,6 +1,6 @@
 {
   "name": "Feedme - development",
   "db": "mongodb://localhost/feedme-dev",
-  "port": 80,
+  "port": 8082,
   "base-url": "/api-dev/"
 }
