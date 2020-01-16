@@ -7,7 +7,6 @@ const auth = async (req, res, next) => {
     if (!token) return res.status(401).send('No json web token provided.');
     let decoded;
 
-    console.log(JSON.stringify(token));
     try {
         decoded = jwt.verify(token, process.env.jwtPrivateKey);
     } catch (e) {
