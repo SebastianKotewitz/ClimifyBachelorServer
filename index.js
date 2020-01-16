@@ -58,7 +58,7 @@ if (process.env.NODE_ENV !== "production") {
     app.use(morgan("dev"));
     app.use(morgan(":reqBody", {immediate: true}));
 
-    app.use(morgan("DEV: :reqBody", {
+    app.use(morgan(":reqBody", {
         stream: logger.streamError,
         skip: (req, res) => res.statusCode < 400
     }));
@@ -74,7 +74,7 @@ if (process.env.NODE_ENV !== "production") {
         stream: logger.streamError,
         skip: (req, res) => res.statusCode < 400 || req.url.includes("/users/") // To avoid logging sensitive info
     }));
-    app.use(morgan(":date[clf] :method :url :status :response-time ms - :res[content-length]", {
+    app.use(morgan("PROD: :date[clf] :method :url :status :response-time ms - :res[content-length]", {
         stream: logger.streamError,
         skip: (req, res) => res.statusCode < 400
     }));

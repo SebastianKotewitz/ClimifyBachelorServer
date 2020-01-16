@@ -1,4 +1,9 @@
+const logger = require("../startup/logger");
+
 module.exports = endMiddleware = (req, res, next) => {
+
+
+
     const defaultWrite = res.write;
     const defaultEnd = res.end;
     const chunks = [];
@@ -9,12 +14,15 @@ module.exports = endMiddleware = (req, res, next) => {
     };
 
     res.end = (...restArgs) => {
-        if (restArgs[0]) {
-            chunks.push(Buffer.from(restArgs[0]));
-        }
-        const body = "Res body: " + Buffer.concat(chunks).toString('utf8');
-        console.log(body);
+        if (res.statusCode >= 400 || process.env.NODE_ENV === "test") {
 
+            if (restArgs[0]) {
+                chunks.push(Buffer.from(restArgs[0]));
+            }
+            const body = "Res body: " + Buffer.concat(chunks).toString('utf8');
+
+            logger.error(body);
+        }
         defaultEnd.apply(res, restArgs);
     };
 
