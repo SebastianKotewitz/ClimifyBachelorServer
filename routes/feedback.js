@@ -12,7 +12,6 @@ const {auth} = require('../middleware/auth');
 const mongoose = require("mongoose");
 
 router.post('/', auth, async (req, res) => {
-    console.log(req.body);
 
     const {error} = validate(req.body);
 
@@ -58,7 +57,6 @@ router.post('/', auth, async (req, res) => {
     }
 
     question.usersAnswered.push(user._id);
-    console.log(user._id);
     await question.save();
 
     res.send(_.pick(feedback, ["_id", "user", "room", "answer", "question"]));

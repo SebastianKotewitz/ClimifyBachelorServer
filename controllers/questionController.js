@@ -17,8 +17,6 @@ const deleteQuestion = async (req, res) => {
 
     for (let i = 0; i < question.answerOptions.length; i++) {
         const res = await Answer.findByIdAndRemove(question.answerOptions[i]._id);
-        console.log("res", res);
-        console.log("res", question.answerOptions[i]._id);
     }
 
     await question.remove();
