@@ -67,12 +67,13 @@ if (process.env.NODE_ENV !== "production") {
         skip: (req, res) => res.statusCode < 400
     }));
 
-    app.use(endMiddleware);
+    
 } else {
     app.use(morgan("dev"));
     app.use(morgan(":reqBody", {
         stream: logger.streamError,
-        skip: (req, res) => res.statusCode < 400 || req.url.includes("/users/") // To avoid logging sensitive info
+        skip: (req, res) => res.statusCode < 400 || req.originalUrl.includes("/users/")
+         // To avoid logging sensitive info
     }));
     app.use(morgan("PROD: :date[clf] :method :url :status :response-time ms - :res[content-length]", {
         stream: logger.streamError,
@@ -93,6 +94,8 @@ if (process.env.NODE_ENV !== 'test') {
       .catch(err => console.log('Could not connect to MongoDB...', err));
 }
 
+
+app.use(endMiddleware);
 app.use(express.json());
 app.use(baseUrl + 'feedback/', feedback);
 app.use(baseUrl + 'users', users);
