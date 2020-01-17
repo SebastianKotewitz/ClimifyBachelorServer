@@ -25,7 +25,7 @@ const makeUserAdmin = async (req, res) => {
 };
 
 const createUser = async (req, res) => {
-    return res.send("HEJ");
+    
     let user;
 
     if (req.body.email) {
