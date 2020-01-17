@@ -89,16 +89,16 @@ router.get('/', auth, async (req, res) => {
             }
         }
     }
-    if (query.notAnswered) {
-        console.log(questions.length);
-        questions = questions.filter(q => {
-            for (let userId of q.usersAnswered) {
-                if (user._id.toString() === userId.toString())
-                    return false;
-            }
-            return true;
-        });
-    }
+    //if (query.notAnswered) { TODO: Should be implemented when implememnted in app
+        // console.log(questions.length);
+        // questions = questions.filter(q => {
+        //     for (let userId of q.usersAnswered) {
+        //         if (user._id.toString() === userId.toString())
+        //             return false;
+        //     }
+        //     return true;
+        // });
+    //}
 
     res.send(questions);
 });

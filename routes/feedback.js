@@ -51,12 +51,12 @@ router.post('/', auth, async (req, res) => {
     await feedback.save();
     await building.save();
 
-    for (userId of question.usersAnswered) {
-        if (userId.toString() === user._id.toString())
-            return res.status(400).send("User is already present in usersAnswered list");
-    }
+    // for (userId of question.usersAnswered) {
+    //     if (userId.toString() === user._id.toString())
+    //         return res.status(400).send("User is already present in usersAnswered list");
+    // }
 
-    question.usersAnswered.push(user._id);
+    // question.usersAnswered.push(user._id);
     await question.save();
 
     res.send(_.pick(feedback, ["_id", "user", "room", "answer", "question"]));
