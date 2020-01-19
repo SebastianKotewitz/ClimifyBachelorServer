@@ -19,8 +19,11 @@ module.exports = endMiddleware = (req, res, next) => {
             if (restArgs[0]) {
                 chunks.push(Buffer.from(restArgs[0]));
             }
-            const body = "Res body: " + Buffer.concat(chunks).toString('utf8');
+            var body = "Res body: " + Buffer.concat(chunks).toString('utf8');
 
+            // To avoid printing entire HTML
+            if (body.includes("<!DOCTYPE html>"))
+                body = body.substring(0, 25) + "...";
             logger.error(body);
         }
         defaultEnd.apply(res, restArgs);
