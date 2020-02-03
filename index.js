@@ -72,7 +72,9 @@ if (process.env.NODE_ENV !== "production") {
     app.use(morgan("dev"));
     app.use(morgan(":reqBody", {
         stream: logger.streamError,
-        skip: (req, res) => res.statusCode < 400 || req.originalUrl.includes("/users/")
+        skip: (req, res) => res.statusCode < 400 ||
+            req.originalUrl.includes("/users/") ||
+            req.originalUrl.include("/auth/")
         // To avoid logging sensitive info
     }));
     app.use(morgan("PROD: :date[clf] :method :url :status :response-time ms - :res[content-length]", {
