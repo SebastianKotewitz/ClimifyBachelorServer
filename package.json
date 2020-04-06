@@ -4,6 +4,7 @@
   "description": "",
   "main": "index.js",
   "scripts": {
+    "start": "nodemon server.js --exec babel-node --presets env",
     "test": "cross-env NODE_ENV=test mocha --recursive --timeout 10000",
     "server": "nodemon",
     "dev": "concurrently --kill-others-on-fail \"yarn server\" \"yarn client\"",
@@ -32,10 +33,13 @@
     "winston": "^3.2.1"
   },
   "devDependencies": {
+    "babel-cli": "^6.26.0",
+    "babel-preset-env": "^1.7.0",
     "chai": "^4.2.0",
     "concurrently": "^4.1.2",
     "cross-env": "^6.0.3",
     "mocha": "^6.2.3",
+    "nodemon": "^2.0.2",
     "nyc": "^13.3.0",
     "supertest": "^4.0.2"
   }
