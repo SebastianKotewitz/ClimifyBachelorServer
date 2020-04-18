@@ -3,6 +3,7 @@ const { validateAuthorized } = require("../models/user");
 const bcrypt = require("bcryptjs");
 const { User } = require("../models/user");
 const router = express.Router();
+const { auth } = require('../middleware/auth');
 
 const FAIL_AUTH_TEXT = "Invalid email or password";
 
