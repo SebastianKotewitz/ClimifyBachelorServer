@@ -10,6 +10,6 @@ router.get('/', auth, getSignalMaps);
 
 router.patch("/confirm-room/:id", [auth, authorized], confirmRoom);
 
-router.delete("/:roomId", [auth, validId], deleteSignalMapsOfRoom)
+router.delete("/room/:roomId", [auth, validId], deleteSignalMapsOfRoom)
 
 module.exports = router;
