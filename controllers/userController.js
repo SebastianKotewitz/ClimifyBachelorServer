@@ -9,7 +9,8 @@ const getUsers = async (req, res) => {
 };
 
 const getUserIdFromEmail = async (req, res) => {
-    const userid = await User.find({email}, "_id user id returned");
+    const userid = await User.findOne({req.params.email}, "_id user id returned");
+    if (!User) return res.status(404).send(`User with email ${req.params.email} was not found`);
     res.send(userid);
 };
 
