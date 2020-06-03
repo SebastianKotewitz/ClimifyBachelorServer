@@ -9,9 +9,11 @@ const getUsers = async (req, res) => {
 };
 
 const getUserIdFromEmail = async (req, res) => {
-    const userid = await User.findOne({req.params.email}, "_id user id returned");
-    if (!userid) return res.status(404).send(`User with email ${req.params.email} was not found`);
-    res.send(userid);
+    const email = req.params.email;
+    const user = await User.findOne({email});
+    if (!user) return res.status(404).send(`User with email ${email} was not found`);
+    const userId = user.id;
+    res.send(userId);
 };
 
 const makeUserAdmin = async (req, res) => {
