@@ -9,8 +9,7 @@ const getUsers = async (req, res) => {
 };
 
 const getUserIdFromEmail = async (req, res) => {
-    
-    const userid = await User.find({email}, "_id email role adminOnBuilding");
+    const userid = await User.find({email}, "_id user id returned");
     res.send(userid);
 };
 
