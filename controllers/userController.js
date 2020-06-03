@@ -8,6 +8,12 @@ const getUsers = async (req, res) => {
     res.send(users);
 };
 
+const getUserIdFromEmail = async (req, res) => {
+    
+    const userid = await User.find({email}, "_id email role adminOnBuilding");
+    res.send(userid);
+};
+
 const makeUserAdmin = async (req, res) => {
 
     const {userId, buildingId} = req.body;
@@ -65,3 +71,4 @@ const createUser = async (req, res) => {
 module.exports.getUsers = getUsers;
 module.exports.makeUserAdmin = makeUserAdmin;
 module.exports.createUser = createUser;
+module.exports.getUserIdFromEmail = getUserIdFromEmail;
