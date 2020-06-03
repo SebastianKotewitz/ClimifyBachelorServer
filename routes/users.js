@@ -9,6 +9,6 @@ router.get('/', [auth, admin], userController.getUsers);
 
 router.patch('/makeBuildingAdmin', auth, userController.makeUserAdmin);
 
-router.get('/getUserIdFromEmail:email', [auth, authorized], userController.getUserIdFromEmail);
+router.get('/getUserIdFromEmail/:email', [auth, authorized], userController.getUserIdFromEmail);
 
 module.exports = router;
