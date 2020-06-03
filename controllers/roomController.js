@@ -24,6 +24,7 @@ const createRoom = async (req, res) => {
     await room.save();
     res.send(room);
 };
+
 const getRoomsFromBuilding = async (req, res) => {
     const buildingId = req.params.id;
     if (!req.user.adminOnBuildings.find(elem => elem.toString() === buildingId))
