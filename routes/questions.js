@@ -1,28 +1,46 @@
 const express = require('express');
 const router = express.Router();
-const {Question, validate} = require('../models/question');
-const {Answer} = require('../models/answer');
-const {Feedback} = require('../models/feedback');
+const { Question, validate } = require('../models/question');
+const { Answer } = require('../models/answer');
+const { Feedback } = require('../models/feedback');
 const _ = require('lodash');
-const {Room} = require('../models/room');
-const {Building} = require('../models/building');
+const { Room } = require('../models/room');
+const { Building } = require('../models/building');
 const mongoose = require('mongoose');
-const {auth} = require('../middleware/auth');
+const { auth } = require('../middleware/auth');
 const questionController = require("../controllers/questionController");
+
+function hasDuplicates(array) {
+    let valuesSoFar = Object.create(null);
+    for (let i = 0; i < array.length; ++i) {
+        let value = array[i];
+        if (value in valuesSoFar) {
+            return true;
+        }
+        valuesSoFar[value] = true;
+    }
+    return false;
+}
 
 router.post('/', [auth], async (req, res) => {
 
-    const {error} = validate(req.body);
+    const { error } = validate(req.body);
     if (error) return res.status(400).send(error.details[0].message);
 
     if (req.user.role < 1) return res.status(403).send("User should be authorized to post questions");
 
-    const {value, rooms, answerOptions} = req.body;
+    const { value, rooms, answerOptions } = req.body;
 
     const user = req.user;
 
     if (answerOptions.length < 2)
         res.status(400).send("Minimum 2 answer options should be provided");
+
+    if (hasDuplicates(rooms)){
+        res.status(400).send("Rooms should only appear once in the list");
+    }
+
+
 
     let tempBuilding;
     for (let i = 0; i < rooms.length; i++) {
@@ -33,7 +51,7 @@ router.post('/', [auth], async (req, res) => {
         if (!tempBuilding) {
             tempBuilding = building;
             if (!user.adminOnBuildings ||
-              !user.adminOnBuildings.find(elem => elem.toString() === building._id.toString())) {
+                !user.adminOnBuildings.find(elem => elem.toString() === building._id.toString())) {
                 return res.status(403).send('Admin rights on the building are required to post new questions');
             }
         } else if (tempBuilding !== building) {
@@ -47,7 +65,7 @@ router.post('/', [auth], async (req, res) => {
     });
 
     for (let i = 0; i < answerOptions.length; i++) {
-        let answer = new Answer({value: answerOptions[i], question: question.id});
+        let answer = new Answer({ value: answerOptions[i], question: question.id });
         await answer.save();
         question.answerOptions.push(answer);
     }
@@ -78,7 +96,7 @@ router.get('/', auth, async (req, res) => {
     });
     if (query.withTimesAnswered) {
         for (let i = 0; i < questions.length; i++) {
-            const feedback = await Feedback.find({question: questions[i].id});
+            const feedback = await Feedback.find({ question: questions[i].id });
             questions[i].timesAnswered = feedback.length;
             for (let j = 0; j < questions[i].answerOptions.length; j++) {
                 questions[i].answerOptions[j].timesAnswered = 0;
@@ -90,14 +108,14 @@ router.get('/', auth, async (req, res) => {
         }
     }
     //if (query.notAnswered) { TODO: Should be implemented when implememnted in app
-        // console.log(questions.length);
-        // questions = questions.filter(q => {
-        //     for (let userId of q.usersAnswered) {
-        //         if (user._id.toString() === userId.toString())
-        //             return false;
-        //     }
-        //     return true;
-        // });
+    // console.log(questions.length);
+    // questions = questions.filter(q => {
+    //     for (let userId of q.usersAnswered) {
+    //         if (user._id.toString() === userId.toString())
+    //             return false;
+    //     }
+    //     return true;
+    // });
     //}
 
     res.send(questions);
@@ -124,7 +142,7 @@ router.get("/active", auth, async (req, res) => {
 
 router.put('/:id', async (req, res) => {
 
-    if (await Question.countDocuments({_id: req.params.id}) <= 0)
+    if (await Question.countDocuments({ _id: req.params.id }) <= 0)
         return res.status(404).send('Question with id ' + req.params.id + ' was not found.');
 
     const question = await Question.findByIdAndUpdate(req.params.id, {
@@ -132,7 +150,7 @@ router.put('/:id', async (req, res) => {
             value: req.body.value,
             answer: req.body.answer
         }
-    }, {new: true});
+    }, { new: true });
 
     res.send(question);
 });
@@ -144,7 +162,7 @@ router.patch("/setActive/:id", auth, async (req, res) => {
         $set: {
             isActive: req.body.isActive
         }
-    }, {new: true});
+    }, { new: true });
 
     res.send(question);
 });
