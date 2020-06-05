@@ -55,6 +55,7 @@ router.post('/', [auth], async (req, res) => {
                 return res.status(403).send('Admin rights on the building are required to post new questions');
             }
         } else if (tempBuilding !== building) {
+            return res.status(400).send('spaghett: ' + tempBuilding._id + '    ' + building._id)
             return res.status(400).send('Questions were posted in rooms of different buildings, which is not allowed');
         }
     }
