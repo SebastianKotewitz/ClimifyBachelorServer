@@ -1,6 +1,6 @@
 const _ = require('lodash');
 const bcrypt = require("bcryptjs");
-const {User, validate, validateAuthorized} = require('../models/user');
+const { User, validate, validateAuthorized } = require('../models/user');
 const StatusError = require("../errors/statusError");
 
 const getUsers = async (req, res) => {
@@ -10,7 +10,7 @@ const getUsers = async (req, res) => {
 
 const getUserIdFromEmail = async (req, res) => {
     const email = req.params.email;
-    const user = await User.findOne({email});
+    const user = await User.findOne({ email });
     if (!user) return res.status(404).send(`User with email ${email} was not found`);
     const userId = user.id;
     res.send(userId);
@@ -18,22 +18,29 @@ const getUserIdFromEmail = async (req, res) => {
 
 const makeUserAdmin = async (req, res) => {
 
-    const {userId, buildingId} = req.body;
+    const { userId, buildingId } = req.body;
     const user = req.user;
     console.log('user.admin: ', user.adminOnBuildings);
 
-    if(!userId || !buildingId)
+    if (!userId || !buildingId)
         return res.status(400).send("Request should include userId and buildingId");
 
     if (!req.user.adminOnBuildings.find(elem => elem.toString() === buildingId))
         return res.status(403).send("User was not admin on building and can therefore not promote other users to admins");
     const newUser = await User.findById(userId);
-    newUser.adminOnBuildings.push(buildingId);
+    const adminOnBuilding = newUser.adminOnBuilding;
+
+    if (adminOnBuilding.includes("buildingId"))
+        return res.status(400).send("The chosen user is already admin on the building");
+
+    // newUser.adminOnBuildings.push(buildingId);
+    await User.update({ _id: userId }, { $push: { adminOnBuildings: buildingId } });
+
     res.send(newUser);
 };
 
 const createUser = async (req, res) => {
-    
+
     let user;
 
     if (req.body.email) {
@@ -51,8 +58,8 @@ const createUser = async (req, res) => {
     }
 
     if (req.body.email) {
-        const {email, password} = req.body;
-        if (await User.findOne({email})) return res.status(400).send("User already registered");
+        const { email, password } = req.body;
+        if (await User.findOne({ email })) return res.status(400).send("User already registered");
 
         const salt = await bcrypt.genSalt();
         user = new User(_.pick(req.body, ['email', "password"]));
