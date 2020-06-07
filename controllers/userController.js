@@ -28,9 +28,9 @@ const makeUserAdmin = async (req, res) => {
     if (!req.user.adminOnBuildings.find(elem => elem.toString() === buildingId))
         return res.status(403).send("User was not admin on building and can therefore not promote other users to admins");
     const newUser = await User.findById(userId);
-    const adminOnBuilding = newUser.adminOnBuilding;
+    const adminOnBuildings = newUser.adminOnBuildings;
 
-    if (adminOnBuilding.includes("buildingId"))
+    if (adminOnBuildings.includes("buildingId"))
         return res.status(400).send("The chosen user is already admin on the building");
 
     // newUser.adminOnBuildings.push(buildingId);
