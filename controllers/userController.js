@@ -30,10 +30,10 @@ const makeUserAdmin = async (req, res) => {
     const newUser = await User.findById(userId);
     const adminOnBuildings = newUser.adminOnBuildings;
 
-    if (adminOnBuildings.includes("buildingId"))
+    if (adminOnBuildings.includes(buildingId))
         return res.status(400).send("The chosen user is already admin on the building");
 
-    // newUser.adminOnBuildings.push(buildingId);
+    newUser.adminOnBuildings.push(buildingId);
     await User.update({ _id: userId }, { $push: { adminOnBuildings: buildingId } });
 
     res.send(newUser);
