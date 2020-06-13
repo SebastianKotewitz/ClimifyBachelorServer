@@ -19,7 +19,7 @@ router.post('/', [auth, authorized], async (req, res) => {
     
     let {buildingId, name, uuid} = req.body;
 
-    const existingBeacon = Beacon.findOne({name, 'building._id': buildingId});
+    const existingBeacon = Beacon.findOne({name, buidling: buildingId});
 
     // if(existingBeacon) return res.status(400).send("A beacon with the name " + name + " already exists in the building");
     if(existingBeacon) return res.status(400).send(existingBeacon);
