@@ -1,4 +1,5 @@
 const {Building, validate} = require("../models/building");
+const {Beacon} = require("../models/beacon");
 const {Room} = require("../models/room");
 const {Question} = require("../models/question");
 const {Feedback} = require('../models/feedback');
@@ -17,6 +18,7 @@ const deleteBuilding = async (req, res) => {
         await Question.deleteMany({rooms: rooms[i].id});
     }
     await Room.deleteMany({building: id});
+    await Beacon.deleteMany({building: id});
 
     if (!building) return res.status(404).send(`Building with id ${id} was not found in database`);
 
