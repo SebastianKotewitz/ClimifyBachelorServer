@@ -6,6 +6,7 @@
   "scripts": {
     "test": "cross-env NODE_ENV=test mocha --recursive --timeout 10000",
     "server": "nodemon",
+    "development": "nodemon NODE_ENV=development",
     "dev": "concurrently --kill-others-on-fail \"yarn server\" \"yarn client\"",
     "prod": "cross-env NODE_ENV=production nodemon"
   },
