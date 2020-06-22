@@ -1,9 +1,9 @@
-const {User} = require('../../models/user');
-const {Building} = require('../../models/building');
-const {Room} = require('../../models/room');
-const {Question} = require('../../models/question');
-const {Feedback} = require('../../models/feedback');
-const {SignalMap} = require('../../models/signalMap');
+const { User } = require('../../models/user');
+const { Building } = require('../../models/building');
+const { Room } = require('../../models/room');
+const { Question } = require('../../models/question');
+const { Feedback } = require('../../models/feedback');
+const { SignalMap } = require('../../models/signalMap');
 const config = require('config');
 const app = require('../..');
 let assert = require('assert');
@@ -14,6 +14,8 @@ const chai = require("chai");
 const chaiAsPromised = require("chai-as-promised");
 chai.use(chaiAsPromised);
 const expect = require('chai').expect;
+const expectErrorCode = require('../expectErrorCode');
+
 
 describe("/api/general/", () => {
     let user;
@@ -21,7 +23,7 @@ describe("/api/general/", () => {
 
     before(async () => {
         server = app.listen(config.get('port'));
-        await mongoose.connect(config.get('db'), {useNewUrlParser: true});
+        await mongoose.connect(config.get('db'), { useNewUrlParser: true });
     });
     after(async () => {
         await server.close();
@@ -29,7 +31,7 @@ describe("/api/general/", () => {
     });
 
     beforeEach(async () => {
-        user = new User({role: 2});
+        user = new User({ role: 2 });
         await user.save();
     });
     afterEach(async () => {
@@ -42,8 +44,8 @@ describe("/api/general/", () => {
     describe("/ DELETE", () => {
 
         const exec = () => request(server)
-          .delete("/api/general")
-          .set("x-auth-token", token);
+            .delete("/api/general")
+            .set("x-auth-token", token);
 
 
         beforeEach(async () => {
@@ -59,9 +61,9 @@ describe("/api/general/", () => {
                 name: "hej",
                 building: mongoose.Types.ObjectId()
             }).save();
-            await new Building({name: "heey"}).save();
-            await new Building({name: "heey"}).save();
-            await new Building({name: "heey"}).save();
+            await new Building({ name: "heey" }).save();
+            await new Building({ name: "heey" }).save();
+            await new Building({ name: "heey" }).save();
             let rooms = await Room.countDocuments({});
             let buildings = await Building.countDocuments({});
             expect(rooms).to.equal(2);
@@ -78,7 +80,8 @@ describe("/api/general/", () => {
             token = user.generateAuthToken();
             await user.save();
 
-            await expect(exec()).to.be.rejectedWith("Forbidden");
+            const res = await exec();
+            expectErrorCode(res, 403);
         });
 
         it("Should not be possible for user role 0 to delete db", async () => {
@@ -86,13 +89,14 @@ describe("/api/general/", () => {
             token = user.generateAuthToken();
             await user.save();
 
-            await expect(exec()).to.be.rejectedWith("Forbidden");
+            const res = await exec();
+            expectErrorCode(res, 403);
         });
 
         it("Should not delete admins ", async () => {
             user.role = 2;
             await user.save();
-            await new User({role: 1}).save();
+            await new User({ role: 1 }).save();
             await exec();
             const userAmount = await User.countDocuments({});
             expect(userAmount).to.equal(1);

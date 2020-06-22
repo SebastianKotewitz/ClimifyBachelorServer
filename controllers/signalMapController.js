@@ -96,7 +96,7 @@ const deleteSignalMapsOfRoom = async (req, res) => {
     const roomId = req.params.roomId;
 
     const room = await Room.findById(roomId);
-    if (!room) return res.status(404).send(`Room with id ${id} was not found in database`);
+    if (!room) return res.status(404).send(`Room with id ${roomId} was not found in database`);
 
     if (!req.user.adminOnBuildings.find(elem => elem.toString() === room.building.toString()))
         return res.status(403).send("User needs to be admin on room to delete signalMaps");

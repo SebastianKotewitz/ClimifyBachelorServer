@@ -1,6 +1,6 @@
 const StatusError = require("../../errors/statusError");
-const {createUser} = require("../../controllers/userController");
-const {User} = require('../../models/user');
+const { createUser } = require("../../controllers/userController");
+const { User } = require('../../models/user');
 const request = require('supertest');
 const app = require('../..');
 let server;
@@ -9,6 +9,7 @@ const mongoose = require('mongoose');
 const chai = require('chai');
 const expect = chai.expect;
 chai.use(require('chai-as-promised'));
+const expectErrorCode = require('../expectErrorCode');
 
 
 describe('Should throw error', () => {
@@ -17,7 +18,7 @@ describe('Should throw error', () => {
 
     before(async () => {
         server = app.listen(config.get('port'));
-        await mongoose.connect(config.get('db'), {useNewUrlParser: true});
+        await mongoose.connect(config.get('db'), { useNewUrlParser: true });
     });
     after(async () => {
         await server.close();
@@ -35,11 +36,13 @@ describe('Should throw error', () => {
 
     const exec = () => {
         return request(server)
-          .post("/api/users" )
-          .send({email: "hej", password: "yo"});
+            .post("/api/users")
+            .send({ email: "hej", password: "yo" });
     };
 
     it("Should throw", async () => {
-        await expect(exec()).to.be.rejectedWith("Forbidden");
+        // await expect(exec()).to.be.rejectedWith("Forbidden");
+        const res = await exec();
+        expectErrorCode(res, 400);
     });
 });

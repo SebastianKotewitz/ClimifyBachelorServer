@@ -15,6 +15,8 @@ const chai = require("chai");
 const chaiAsPromised = require("chai-as-promised");
 chai.use(chaiAsPromised);
 const expect = require('chai').expect;
+const expectErrorCode = require('../expectErrorCode');
+
 
 describe('/api/rooms', () => {
     let user;
@@ -67,14 +69,16 @@ describe('/api/rooms', () => {
 
         it("should return 401 if no token provided", async () => {
             token = null;
-            await expect(exec()).to.be.rejectedWith("Unauthorized");
+            const res = await exec();
+            expectErrorCode(res, 401);
         });
 
 
         it("Should return 403 if user not authorized with login role >= 1", async () => {
             user.role = 0;
             await user.save();
-            await expect(exec()).to.be.rejectedWith("Forbidden");
+            const res = await exec();
+            expectErrorCode(res, 403);
         });
 
         it('should return room with proper building id', async () => {
@@ -103,12 +107,8 @@ describe('/api/rooms', () => {
         it('should return 400 if name not set', async () => {
             name = null;
 
-            try {
-                await exec();
-            } catch (e) {
-                return expect(e.status).to.equal(400);
-            }
-            throw new Error('should have thrown error');
+            const res = await exec();
+            expectErrorCode(res, 400);
         });
 
         it("Should return 403 if user not admin on building", async () => {
@@ -152,7 +152,8 @@ describe('/api/rooms', () => {
         it("Should return 403 if user was not admin on building", async () => {
             user.adminOnBuildings = [];
             await user.save();
-            await expect(exec()).to.be.rejectedWith("Forbidden");
+            const res = await exec();
+            expectErrorCode(res, 403);
         });
     });
 
@@ -184,7 +185,8 @@ describe('/api/rooms', () => {
             user.role = 1;
             query = "";
             await user.save();
-            await expect(exec()).to.be.rejectedWith("Forbidden");
+            const res = await exec();
+            expectErrorCode(res, 403);
         });
 
         it("Should only return rooms that user has given feedback on, when query parsed", async () => {
@@ -223,13 +225,15 @@ describe('/api/rooms', () => {
 
         it("Should return 404 if user was not found", async () => {
             query = "?admin=" + mongoose.Types.ObjectId();
-            await expect(exec()).to.be.rejectedWith("Not Found");
+            const res = await exec();
+            expectErrorCode(res, 404);
         });
         it("Should return 403 if user tried to get rooms another user is admin on but was not admin himself", async () => {
             user.role = 1;
             await user.save();
             query = "?admin=" + mongoose.Types.ObjectId();
-            await expect(exec()).to.be.rejectedWith("Forbidden");
+            const res = await exec();
+            expectErrorCode(res, 403);
         });
 
         it("Should only return rooms where user is admin if query admin=me parsed", async () => {
@@ -294,7 +298,8 @@ describe('/api/rooms', () => {
             user.adminOnBuildings = [];
             await user.save();
             token = user.generateAuthToken();
-            await expect(exec()).to.be.rejectedWith("Forbidden");
+            const res = await exec();
+            expectErrorCode(res, 403);
         });
 
         it("Should delete questions that have only reference to deleted room", async () => {

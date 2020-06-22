@@ -10,6 +10,7 @@ const app = require('../..');
 let server;
 const config = require('config');
 const mongoose = require('mongoose');
+const expectErrorCode = require('../expectErrorCode');
 
 describe('/api/beacons', () => {
     let user;
@@ -71,12 +72,8 @@ describe('/api/beacons', () => {
         // 400 if random parameter in body is passed
         it('400 if random parameter in body is parsed', async () => {
             randomParam = "hej";
-            try {
-                const res = await exec();
-                return expect(res.status).to.be.equal(400);
-            } catch (_) {
-                expect.fail("Should have failed");
-            }
+            const res = await exec();
+            expectErrorCode(res, 400);
         });
 
         it("Should accept uuid value", async () => {
@@ -89,12 +86,8 @@ describe('/api/beacons', () => {
             user.role = 0;
             await user.save();
             token = user.generateAuthToken();
-            try {
-                const res = await exec();
-                return expect(res.status).to.be.equal(403);
-            } catch (_) {
-                expect.fail("Should have returned forbidden");
-            }
+            const res = await exec();
+            expectErrorCode(res, 403);
         });
 
         it("Should post new beacon with right parameters", async () => {
@@ -174,33 +167,21 @@ describe('/api/beacons', () => {
         it("Should return 403 if role not sufficient", async () => {
             user.role = 0;
             await user.save();
-            try {
-                const res = await exec();
-                return expect(res.status).to.be.equal(403);
-            } catch (_) {
-                expect.fail("Should have returned forbidden");
-            }
+            const res = await exec();
+            expectErrorCode(res, 403);
         });
 
         it("Should return 403 if not admin on building with beacon", async () => {
             user.adminOnBuildings = [];
             await user.save();
-            try {
-                const res = await exec();
-                return expect(res.status).to.be.equal(403);
-            } catch (_) {
-                expect.fail("Should have returned forbidden");
-            }
+            const res = await exec();
+            expectErrorCode(res, 403);
         });
 
         it("Should return 404 if beacon not found", async () => {
             id = mongoose.Types.ObjectId();
-            try {
-                const res = await exec();
-                return expect(res.status).to.be.equal(404);
-            } catch (_) {
-                expect.fail("Should have returned not found");
-            }
+            const res = await exec();
+            expectErrorCode(res, 404);
         });
 
         it("Should succesfully delete beacon", async () => {

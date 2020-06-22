@@ -96,7 +96,7 @@ const getRooms = async (req, res) => {
         }
 
     } else {
-        if (req.user.role < 0) // TODO: Should be 2, not 1
+        if (req.user.role < 2) // TODO: Should be 2, not 1
             return res.status(403).send("User should have role admin to get all rooms");
         rooms = await Room.find();
     }

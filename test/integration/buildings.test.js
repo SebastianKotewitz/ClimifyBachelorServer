@@ -1,7 +1,7 @@
-const {User} = require('../../models/user');
-const {Building} = require('../../models/building');
-const {Room} = require('../../models/room');
-const {Feedback} = require('../../models/feedback');
+const { User } = require('../../models/user');
+const { Building } = require('../../models/building');
+const { Room } = require('../../models/room');
+const { Feedback } = require('../../models/feedback');
 const request = require('supertest');
 const assert = require('assert');
 const mongoose = require('mongoose');
@@ -9,9 +9,10 @@ const app = require('../..');
 const config = require('config');
 const chai = require("chai");
 const chaiAsPromised = require("chai-as-promised");
-const {Question} = require("../../models/question");
+const { Question } = require("../../models/question");
 chai.use(chaiAsPromised);
 const expect = require("chai").expect;
+const expectErrorCode = require('../expectErrorCode');
 let server;
 
 describe('/api/buildings', () => {
@@ -19,7 +20,7 @@ describe('/api/buildings', () => {
 
     before(async () => {
         server = app.listen(config.get('port'));
-        await mongoose.connect(config.get('db'), {useNewUrlParser: true});
+        await mongoose.connect(config.get('db'), { useNewUrlParser: true });
     });
     after(async () => {
         await server.close();
@@ -44,9 +45,9 @@ describe('/api/buildings', () => {
 
         const exec = () => {
             return request(server)
-              .post('/api/buildings')
-              .set('x-auth-token', token)
-              .send({name: buildingName});
+                .post('/api/buildings')
+                .set('x-auth-token', token)
+                .send({ name: buildingName });
         };
 
 
@@ -64,22 +65,14 @@ describe('/api/buildings', () => {
 
         it('401 if json token not provided in header', async () => {
             token = null;
-            try {
-                const res = await exec();
-                return expect(res.status).to.be.equal(401);
-            } catch (_) {
-                expect.fail("Should have returned unauthorized");
-            }
+            const res = await exec();
+            expectErrorCode(res, 401);
         });
 
         it('400 if name not provided', async () => {
             buildingName = null;
-            try {
-                const res = await exec();
-                return expect(res.status).to.be.equal(400);
-            } catch (_) {
-                expect.fail("Should have returned bad request");
-            }
+            const res = await exec();
+            expectErrorCode(res, 400);
         });
 
         it('should have user as admin on newly posted building', async () => {
@@ -94,12 +87,8 @@ describe('/api/buildings', () => {
         it("should return 403 if user not authorized with login role >= 1", async () => {
             user.role = 0;
             await user.save();
-            try {
-                const res = await exec();
-                return expect(res.status).to.be.equal(403);
-            } catch (_) {
-                expect.fail("Should have returned forbidden");
-            }
+            const res = await exec();
+            expectErrorCode(res, 403);
         });
 
     });
@@ -111,7 +100,7 @@ describe('/api/buildings', () => {
         let token;
 
         beforeEach(async () => {
-            building = new Building({name: "324"});
+            building = new Building({ name: "324" });
             buildingId = building.id;
             user.adminOnBuildings = [buildingId];
             user.role = 1;
@@ -123,8 +112,8 @@ describe('/api/buildings', () => {
 
         const exec = () => {
             return request(server)
-              .delete("/api/buildings/" + buildingId)
-              .set("x-auth-token", token);
+                .delete("/api/buildings/" + buildingId)
+                .set("x-auth-token", token);
         };
 
         it("Should return empty array of buildings after building was deleted", async () => {
@@ -156,9 +145,9 @@ describe('/api/buildings', () => {
                     _id: mongoose.Types.ObjectId()
                 }
                     , {
-                        _id: mongoose.Types.ObjectId(),
-                        value: "I'm fine, thanks"
-                    }],
+                    _id: mongoose.Types.ObjectId(),
+                    value: "I'm fine, thanks"
+                }],
                 rooms: [room.id]
             }).save();
 
@@ -180,9 +169,9 @@ describe('/api/buildings', () => {
                     _id: mongoose.Types.ObjectId()
                 }
                     , {
-                        _id: mongoose.Types.ObjectId(),
-                        value: "I'm fine, thanks"
-                    }],
+                    _id: mongoose.Types.ObjectId(),
+                    value: "I'm fine, thanks"
+                }],
                 rooms: [room.id]
             }).save();
 
@@ -205,7 +194,8 @@ describe('/api/buildings', () => {
         it("Should return 403 if user was not admin on the building", async () => {
             user.adminOnBuildings = [];
             await user.save();
-            await expect(exec()).to.be.rejectedWith("Forbidden");
+            const res = await exec();
+            expectErrorCode(res, 403);
         });
     });
 
@@ -218,9 +208,9 @@ describe('/api/buildings', () => {
         let query;
 
         beforeEach(async () => {
-            building = new Building({name: "324"});
+            building = new Building({ name: "324" });
             buildingId = building.id;
-            room = new Room({name: "hej", location: "hej", building: buildingId});
+            room = new Room({ name: "hej", location: "hej", building: buildingId });
             roomId = room.id;
             query = "";
             token = user.generateAuthToken();
@@ -230,12 +220,12 @@ describe('/api/buildings', () => {
 
         const exec = () => {
             return request(server)
-              .get("/api/buildings/" + buildingId + "/" + query)
-              .set("x-auth-token", token);
+                .get("/api/buildings/" + buildingId + "/" + query)
+                .set("x-auth-token", token);
         };
 
         it("Should return only one building", async () => {
-            let building = new Building({name: "322"});
+            let building = new Building({ name: "322" });
             await building.save();
             const res = await exec();
             expect(res.body.name).to.equal("324");
@@ -243,7 +233,8 @@ describe('/api/buildings', () => {
 
         it("Should return 404 if building was not found", async () => {
             buildingId = mongoose.Types.ObjectId();
-            await expect(exec()).to.be.rejectedWith("Not Found");
+            const res = await exec();
+            expectErrorCode(res, 404);
         });
 
         it("Should return feedbackCount if withFeedbackCount query set", async () => {
@@ -283,9 +274,9 @@ describe('/api/buildings', () => {
         let query;
 
         beforeEach(async () => {
-            building = new Building({name: "324"});
+            building = new Building({ name: "324" });
             buildingId = building.id;
-            room = new Room({name: "hej", location: "hej", building: buildingId});
+            room = new Room({ name: "hej", location: "hej", building: buildingId });
             roomId = room.id;
             user.adminOnBuildings = [buildingId];
             token = user.generateAuthToken();
@@ -298,8 +289,8 @@ describe('/api/buildings', () => {
 
         const exec = () => {
             return request(server)
-              .get("/api/buildings/" + query)
-              .set("x-auth-token", token);
+                .get("/api/buildings/" + query)
+                .set("x-auth-token", token);
         };
 
         it("Should return building with room", async () => {
@@ -311,8 +302,8 @@ describe('/api/buildings', () => {
 
         it("Should return array with rooms", async () => {
             query = "?admin=me";
-            let room2 = new Room({name: "hej", location: "hej", building: buildingId});
-            let room3 = new Room({name: "hej", location: "hej", building: mongoose.Types.ObjectId()});
+            let room2 = new Room({ name: "hej", location: "hej", building: buildingId });
+            let room3 = new Room({ name: "hej", location: "hej", building: mongoose.Types.ObjectId() });
             await room2.save();
             await room3.save();
             const res = await exec();
@@ -322,8 +313,8 @@ describe('/api/buildings', () => {
         it("Should only return buildings that requesting user is admin on when query set", async () => {
             query = "?admin=me";
 
-            const b1 = await new Building({name: "hej"}).save();
-            const b2 = await new Building({name: "hej"}).save();
+            const b1 = await new Building({ name: "hej" }).save();
+            const b2 = await new Building({ name: "hej" }).save();
             user.adminOnBuildings = [b1.id, b2.id];
 
             await user.save();
@@ -333,7 +324,8 @@ describe('/api/buildings', () => {
         });
 
         it("Should return 403 if user was not admin but tried to get all buildings", async () => {
-            await expect(exec()).to.be.rejectedWith("Forbidden");
+            const res = await exec();
+            expectErrorCode(res, 403);
         });
 
         it("Should get all buildings when user was admin and did not set any query parameter", async () => {
@@ -341,34 +333,35 @@ describe('/api/buildings', () => {
             user.role = 2;
             token = user.generateAuthToken();
             await user.save();
-            await new Building({name: "hej"}).save();
-            await new Building({name: "hej"}).save();
+            await new Building({ name: "hej" }).save();
+            await new Building({ name: "hej" }).save();
 
             const res = await exec();
             expect(res.body.length).to.equal(3);
         });
 
         it("Should return 403 if non admin user tries to get buildings from where feedback from " +
-          "a different user was given", async () => {
-            const feedback = await new Feedback({
-                question: mongoose.Types.ObjectId(),
-                answer: mongoose.Types.ObjectId(),
-                user: mongoose.Types.ObjectId(),
-                room: roomId
-            }).save();
+            "a different user was given", async () => {
+                const feedback = await new Feedback({
+                    question: mongoose.Types.ObjectId(),
+                    answer: mongoose.Types.ObjectId(),
+                    user: mongoose.Types.ObjectId(),
+                    room: roomId
+                }).save();
 
-            await new Building({name: "hej"}).save();
+                await new Building({ name: "hej" }).save();
 
-            query = "?feedback=" + feedback.user;
+                query = "?feedback=" + feedback.user;
 
-            await expect(exec()).to.be.rejectedWith("Forbidden");
-        });
+                const res = await exec();
+                expectErrorCode(res, 403);
+            });
 
         it("Should return buildings where another user has given feedback ", async () => {
 
 
-            const building = await new Building({name: "hej"}).save();
-            const room = await  new Room({
+            const building = await new Building({ name: "hej" }).save();
+            const room = await new Room({
                 name: "222",
                 building: building.id
             }).save();
@@ -404,7 +397,7 @@ describe('/api/buildings', () => {
                 room: roomId
             }).save();
 
-            await new Building({name: "hej"}).save();
+            await new Building({ name: "hej" }).save();
 
             query = "?feedback=me";
             const res = await exec();
@@ -415,8 +408,8 @@ describe('/api/buildings', () => {
         it("Should get building from another admin when proper query parsed", async () => {
             user.role = 2;
 
-            const b1 = await new Building({name: "hej"}).save();
-            const b2 = await new Building({name: "hej"}).save();
+            const b1 = await new Building({ name: "hej" }).save();
+            const b2 = await new Building({ name: "hej" }).save();
 
             const newUser = await new User({
                 email: "q@q",

@@ -1,8 +1,8 @@
-const {User} = require('../../models/user');
-const {Building} = require('../../models/building');
-const {Room} = require('../../models/room');
-const {Beacon} = require('../../models/beacon');
-const {SignalMap} = require('../../models/signalMap');
+const { User } = require('../../models/user');
+const { Building } = require('../../models/building');
+const { Room } = require('../../models/room');
+const { Beacon } = require('../../models/beacon');
+const { SignalMap } = require('../../models/signalMap');
 const request = require('supertest');
 const mongoose = require('mongoose');
 const app = require('../..');
@@ -11,6 +11,8 @@ const chai = require("chai");
 const chaiAsPromised = require("chai-as-promised");
 chai.use(chaiAsPromised);
 const expect = require('chai').expect;
+const expectErrorCode = require('../expectErrorCode');
+
 
 describe('/api/signalMaps', () => {
     let server;
@@ -25,7 +27,7 @@ describe('/api/signalMaps', () => {
 
     before(async () => {
         server = await app.listen(config.get('port'));
-        await mongoose.connect(config.get('db'), {useNewUrlParser: true});
+        await mongoose.connect(config.get('db'), { useNewUrlParser: true });
     });
     after(async () => {
         await server.close();
@@ -33,7 +35,7 @@ describe('/api/signalMaps', () => {
     });
 
     beforeEach(async () => {
-        user = new User({role: 1});
+        user = new User({ role: 1 });
         await user.save();
     });
     afterEach(async () => {
@@ -47,9 +49,9 @@ describe('/api/signalMaps', () => {
 
         const exec = () => {
             return request(server)
-              .post('/api/signalMaps')
-              .set({'x-auth-token': token})
-              .send({roomId, beacons, buildingId})
+                .post('/api/signalMaps')
+                .set({ 'x-auth-token': token })
+                .send({ roomId, beacons, buildingId })
         };
 
         beforeEach(async () => {
@@ -85,7 +87,7 @@ describe('/api/signalMaps', () => {
             roomId = room.id;
             signalMap = {
                 room: roomId,
-                beacons: [{_id: beaconId, signals: [-39, -41]}]
+                beacons: [{ _id: beaconId, signals: [-39, -41] }]
             };
 
             beacons = [{
@@ -97,14 +99,14 @@ describe('/api/signalMaps', () => {
 
         it("Should not throw error", async () => {
 
-            const building = new Building({name: "heeej"});
+            const building = new Building({ name: "heeej" });
             await building.save();
 
-            let room = new Room({building: building.id, name: "hej"});
-            let room2 = new Room({building: building.id, name: "hej2"});
+            let room = new Room({ building: building.id, name: "hej" });
+            let room2 = new Room({ building: building.id, name: "hej2" });
             await room.save();
             await room2.save();
-            let beacon = new Beacon({name: "hej", building: building.id, uuid: "f7826da6-4fa2-4e98-8024-bc5b71e0893b"});
+            let beacon = new Beacon({ name: "hej", building: building.id, uuid: "f7826da6-4fa2-4e98-8024-bc5b71e0893b" });
             let beacon2 = new Beacon({
                 name: "hej",
                 building: building.id,
@@ -164,16 +166,16 @@ describe('/api/signalMaps', () => {
             const requestFromChril = {
                 buildingId: building.id,
                 beacons: [
-                    {beaconId: beacon.id, signals: [-62]}, {
+                    { beaconId: beacon.id, signals: [-62] }, {
                         beaconId: beacon2.id,
                         signals: [-70]
                     }]
             };
 
             const res = await request(server)
-              .post('/api/signalMaps')
-              .set({'x-auth-token': token})
-              .send(requestFromChril);
+                .post('/api/signalMaps')
+                .set({ 'x-auth-token': token })
+                .send(requestFromChril);
         });
 
         it("Should not throw error either", async () => {
@@ -468,51 +470,51 @@ describe('/api/signalMaps', () => {
                 uuid: "f7826da6-4fa2-4e98-8024-bc5b71e0893b",
                 __v: 0
             }),
-                new Beacon({
-                    _id: "5cc81e43c3325e715fb3b72b",
-                    building: {
-                        feedback: [],
-                        _id: "5ca34d31ab35306b2610eb7b",
-                        "name": "Empire State Building",
-                        "__v": 0
-                    },
-                    name: "ha2T",
-                    uuid: "f7826da6-4fa2-4e98-8024-bc5b71e0893a",
+            new Beacon({
+                _id: "5cc81e43c3325e715fb3b72b",
+                building: {
+                    feedback: [],
+                    _id: "5ca34d31ab35306b2610eb7b",
+                    "name": "Empire State Building",
+                    "__v": 0
+                },
+                name: "ha2T",
+                uuid: "f7826da6-4fa2-4e98-8024-bc5b71e0893a",
+                __v: 0
+            }),
+            new Beacon({
+                _id: "5cc81eb1c3325e715fb3b72c",
+                building: {
+                    feedback: [],
+                    _id: "5ca34d31ab35306b2610eb7b",
+                    name: "Empire State Building",
                     __v: 0
-                }),
-                new Beacon({
-                    _id: "5cc81eb1c3325e715fb3b72c",
-                    building: {
-                        feedback: [],
-                        _id: "5ca34d31ab35306b2610eb7b",
-                        name: "Empire State Building",
-                        __v: 0
-                    },
-                    name: "LToy",
-                    uuid: "f7826da6-4fa2-4e98-8024-bc5b71e0891e",
-                    __v: 0
-                }),
-                new Beacon({
-                    _id: "5cc820cda98a3571910886b4",
-                    building: {
-                        feedback: [],
-                        _id: "5ca34d31ab35306b2610eb7b",
-                        "name": "Empire State Building",
-                        "__v": 0
-                    },
-                    name: "CQS0",
-                    uuid: "f7826da6-4fa2-4e98-8024-bc5b71e0877e",
-                    __v: 0
-                })];
+                },
+                name: "LToy",
+                uuid: "f7826da6-4fa2-4e98-8024-bc5b71e0891e",
+                __v: 0
+            }),
+            new Beacon({
+                _id: "5cc820cda98a3571910886b4",
+                building: {
+                    feedback: [],
+                    _id: "5ca34d31ab35306b2610eb7b",
+                    "name": "Empire State Building",
+                    "__v": 0
+                },
+                name: "CQS0",
+                uuid: "f7826da6-4fa2-4e98-8024-bc5b71e0877e",
+                __v: 0
+            })];
             for (let i = 0; i < newBeacons.length; i++) {
                 await newBeacons[i].save();
             }
 
             beacons = [
-                {signals: [-65.33333], beaconId: "5cc813915dd2bd712743c9ba"},
-                {signals: [-66], beaconId: "5cc81e43c3325e715fb3b72b"},
-                {signals: [-64], beaconId: "5cc81eb1c3325e715fb3b72c"},
-                {signals: [-65.33333], beaconId: "5cc820cda98a3571910886b4"}];
+                { signals: [-65.33333], beaconId: "5cc813915dd2bd712743c9ba" },
+                { signals: [-66], beaconId: "5cc81e43c3325e715fb3b72b" },
+                { signals: [-64], beaconId: "5cc81eb1c3325e715fb3b72c" },
+                { signals: [-65.33333], beaconId: "5cc820cda98a3571910886b4" }];
 
             buildingId = "5ca34d31ab35306b2610eb7b";
             roomId = undefined;
@@ -525,7 +527,8 @@ describe('/api/signalMaps', () => {
         it("Should return 400 if neither roomId or buildingId provided", async () => {
             buildingId = undefined;
             roomId = undefined;
-            await expect(exec()).to.be.rejectedWith("Bad Request");
+            const res = await exec();
+            expectErrorCode(res, 400);
         });
 
         it("Should return new signalmap with one length array of beacons", async () => {
@@ -544,7 +547,8 @@ describe('/api/signalMaps', () => {
                 signals
             }];
 
-            await expect(exec()).to.be.rejectedWith("Bad Request");
+            const res = await exec();
+            expectErrorCode(res, 400);
         });
 
         it("Should return 400 if one of the rssi arrays did not have the same length as the other's", async () => {
@@ -556,7 +560,8 @@ describe('/api/signalMaps', () => {
                 beaconId: mongoose.Types.ObjectId(),
                 signals: [10, 23, 60]
             });
-            await expect(exec()).to.be.rejectedWith("Bad Request");
+            const res = await exec();
+            expectErrorCode(res, 400);
         });
 
         it("Should set isActive to false by default if room not provided", async () => {
@@ -595,7 +600,7 @@ describe('/api/signalMaps', () => {
             expect(res.body.room._id).to.equal(signalMap.room.toString());
         });
 
-        it("Should throw error if only inactive signalmaps are available and roomId not provided", async () => {
+        it("Should return 400 if only inactive signalmaps are available and roomId not provided", async () => {
             const signalMap = new SignalMap({
                 beacons: [{
                     _id: beaconId,
@@ -605,7 +610,8 @@ describe('/api/signalMaps', () => {
                 isActive: false
             });
             roomId = undefined;
-            await expect(exec()).to.be.rejectedWith("Bad Request");
+            const res = await exec();
+            expectErrorCode(res, 400);
         });
 
         it("Should estimate correct room when nearest neighbor is a tie", async () => {
@@ -729,7 +735,8 @@ describe('/api/signalMaps', () => {
         it("Should return 400 if no signalmap was posted and a room estimation was requested", async () => {
             await SignalMap.deleteMany();
             roomId = undefined;
-            await expect(exec()).to.be.rejectedWith("Bad Request");
+            const res = await exec();
+            expectErrorCode(res, 400);
         });
 
         it("Should return 403 if roomId provided and user was not authorized", async () => {
@@ -738,7 +745,8 @@ describe('/api/signalMaps', () => {
             await user.save();
 
             buildingId = undefined;
-            await expect(exec()).to.be.rejectedWith("Forbidden");
+            const res = await exec();
+            expectErrorCode(res, 403);
 
         });
 
@@ -746,7 +754,8 @@ describe('/api/signalMaps', () => {
             roomId = mongoose.Types.ObjectId();
             buildingId = undefined;
 
-            await expect(exec()).to.be.rejectedWith("Bad Request");
+            const res = await exec();
+            expectErrorCode(res, 400);
         });
 
         it("Should return 403 if user was not admin on building where signalmap is posted", async () => {
@@ -755,7 +764,8 @@ describe('/api/signalMaps', () => {
             await user.save();
 
             buildingId = undefined;
-            await expect(exec()).to.be.rejectedWith("Forbidden");
+            const res = await exec();
+            expectErrorCode(res, 403);
         });
 
         it("Should take all signal maps with the same room id into account when estimating room", async () => {
@@ -807,9 +817,9 @@ describe('/api/signalMaps', () => {
         let signalMapId;
         const exec = () => {
             return request(server)
-              .patch('/api/signalMaps/confirm-room/' + signalMapId)
-              .set({'x-auth-token': token})
-              .send({roomId, beacons, buildingId})
+                .patch('/api/signalMaps/confirm-room/' + signalMapId)
+                .set({ 'x-auth-token': token })
+                .send({ roomId, beacons, buildingId })
         };
 
         beforeEach(async () => {
@@ -828,7 +838,7 @@ describe('/api/signalMaps', () => {
 
             signalMap = new SignalMap({
                 room: roomId,
-                beacons: [{_id: beaconId, signals: [39, 41]}]
+                beacons: [{ _id: beaconId, signals: [39, 41] }]
             });
             signalMapId = signalMap.id;
 
@@ -844,17 +854,19 @@ describe('/api/signalMaps', () => {
 
         it("Should return 404 if signal map did not exist", async () => {
             signalMapId = mongoose.Types.ObjectId();
-            await expect(exec()).to.be.rejectedWith("Not Found");
+            const res = await exec();
+            expectErrorCode(res, 404);
         });
     });
+
 
 
     describe(" GET / ", () => {
 
         const exec = () => {
             return request(server)
-              .get('/api/signalMaps')
-              .set({'x-auth-token': token})
+                .get('/api/signalMaps')
+                .set({ 'x-auth-token': token })
         };
 
         beforeEach(async () => {
@@ -873,7 +885,7 @@ describe('/api/signalMaps', () => {
 
             signalMap = new SignalMap({
                 room: roomId,
-                beacons: [{_id: beaconId, signals: [39, 41]}]
+                beacons: [{ _id: beaconId, signals: [39, 41] }]
             });
 
             await signalMap.save();
@@ -891,4 +903,121 @@ describe('/api/signalMaps', () => {
         });
 
     })
+
+    describe(" DELETE / room / :roomId", () => {
+        let deleteRoomId;
+        let buildingId;
+
+        const exec = () => {
+            return request(server)
+                .delete('/api/signalMaps/room/' + deleteRoomId)
+                .set({ 'x-auth-token': token })
+        };
+
+        beforeEach(async () => {
+            await SignalMap.deleteMany();
+            await Room.deleteMany();
+            await Building.deleteMany();
+            await Beacon.deleteMany();
+
+            const building = new Building({ name: "heeej", adminOnBuildings: [user.id] });
+            await building.save();
+
+            buildingId = building.id;
+
+            let room = new Room({ building: building.id, name: "hej" });
+            let room2 = new Room({ building: building.id, name: "hej2" });
+            await room.save();
+            await room2.save();
+            let beacon = new Beacon({ name: "hej", building: building.id, uuid: "f7826da6-4fa2-4e98-8024-bc5b71e0893b", });
+            let beacon2 = new Beacon({
+                name: "hej",
+                building: building.id,
+                uuid: "f7826da6-4fa2-4e98-8024-bc5b71e0893b"
+            });
+            await beacon.save();
+            await beacon2.save();
+
+
+            let signalMap = new SignalMap({
+                isActive: true,
+                room: room.id,
+                beacons: [
+                    {
+                        signals: [
+                            -73,
+                            -69.5,
+                            -67
+                        ],
+                        _id: beacon.id
+                    },
+                    {
+                        signals: [
+                            -64,
+                            -70
+                        ],
+                        _id: beacon2.id
+                    }
+                ],
+                __v: 0
+            });
+            await signalMap.save();
+            let signalMap2 = new SignalMap({
+                isActive: true,
+                room: room2.id,
+                beacons: [
+                    {
+                        signals: [
+                            -73,
+                            -69.5,
+                            -67
+                        ],
+                        _id: "5cc6d646032e5567cf4e31ac"
+                    },
+                    {
+                        signals: [
+                            -64,
+                            -70
+                        ],
+                        _id: "5cc6d646032e5567cf4e31ab"
+                    }
+                ]
+            });
+            await signalMap2.save();
+            token = user.generateAuthToken();
+
+            deleteRoomId = room.id;
+        });
+
+        it("Should delete signal maps of given room only if user is admin", async () => {
+            user.adminOnBuildings.push(buildingId);
+            await user.save();
+            token = user.generateAuthToken();
+
+
+            const res = await exec();
+            console.log(res.status);
+
+            const foundSignalMaps = await SignalMap.find({});
+            expect(foundSignalMaps.length).to.equal(1);
+        });
+
+        it("Should return 403 if user is not admin on building", async () => {
+            const res = await exec();
+            expectErrorCode(res, 403);
+        });
+
+        it("Should return 404 if room was not found", async () => {
+            deleteRoomId = mongoose.Types.ObjectId();
+            const res = await exec();
+            expectErrorCode(res, 404);
+        });
+
+        it("Should return 401 if no token is provided", async () => {
+            token = null;
+            const res = await exec();
+            expectErrorCode(res, 401);
+        });
+    })
+
 });

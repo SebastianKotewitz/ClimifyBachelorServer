@@ -7,6 +7,7 @@ let server;
 const config = require('config');
 const bcrypt = require("bcryptjs");
 const mongoose = require('mongoose');
+const expectErrorCode = require('../expectErrorCode');
 
 
 describe('/api/auth', () => {
@@ -48,42 +49,26 @@ describe('/api/auth', () => {
 
         it("should return 400 if email not set", async () => {
             email = null;
-            try {
-                const res = await exec();
-                return expect(res.status).to.be.equal(400);
-            } catch (_) {
-                expect.fail("Should have failed");
-            }
+            const res = await exec();
+            expectErrorCode(res, 400);
         });
 
         it("Should return 400 if password not set", async () => {
             password = null;
-            try {
-                const res = await exec();
-                return expect(res.status).to.be.equal(400);
-            } catch (_) {
-                expect.fail("Should have failed");
-            }
+            const res = await exec();
+            expectErrorCode(res, 400);
         });
 
         it("Should return 400 if password invalid", async () => {
             password = "123";
-            try {
-                const res = await exec();
-                return expect(res.status).to.be.equal(400);
-            } catch (_) {
-                expect.fail("Should have failed");
-            }
+            const res = await exec();
+            expectErrorCode(res, 400);
         });
 
         it("Should return 400 if password wasn't correct", async () => {
             password = "Qwert12345";
-            try {
-                const res = await exec();
-                return expect(res.status).to.be.equal(400);
-            } catch (_) {
-                expect.fail("Should have failed");
-            }
+            const res = await exec();
+            expectErrorCode(res, 400);
         });
 
         it("Should return 200 if email and password valid", async () => {
@@ -93,12 +78,8 @@ describe('/api/auth', () => {
 
         it("Should return 400 if user did not exist", async () => {
             email = "asd@asd.dk";
-            try {
-                const res = await exec();
-                return expect(res.status).to.be.equal(400);
-            } catch (_) {
-                expect.fail("Should have failed");
-            }
+            const res = await exec();
+            expectErrorCode(res, 400);
         });
 
         it("Should return json web token that can be decoded to valid mongoose _id", async () => {

@@ -1,4 +1,4 @@
-const {User} = require('../../models/user');
+const { User } = require('../../models/user');
 const request = require('supertest');
 let assert = require('assert');
 const app = require('../..');
@@ -11,6 +11,7 @@ const chaiAsPromised = require("chai-as-promised");
 chai.use(chaiAsPromised);
 const expect = chai.expect;
 chai.should();
+const expectErrorCode = require('../expectErrorCode');
 
 describe('/api/users', () => {
     let user;
@@ -18,7 +19,7 @@ describe('/api/users', () => {
 
     before(async () => {
         server = app.listen(config.get('port'));
-        await mongoose.connect(config.get('db'), {useNewUrlParser: true});
+        await mongoose.connect(config.get('db'), { useNewUrlParser: true });
     });
     after(async () => {
         await server.close();
@@ -38,8 +39,8 @@ describe('/api/users', () => {
         let query;
         const exec = () => {
             return request(server)
-              .get("/api/users" + query)
-              .set('x-auth-token', token);
+                .get("/api/users" + query)
+                .set('x-auth-token', token);
         };
 
         beforeEach(async () => {
@@ -64,12 +65,68 @@ describe('/api/users', () => {
         it("Should return 403 if user was not admin", async () => {
             user.role = 1;
             await user.save();
-            await expect(exec()).to.be.rejectedWith("Forbidden");
+            const res = await exec();
+            expectErrorCode(res, 403);
         });
 
         it("Should return 401 if token not provided", async () => {
             token = null;
-            await expect(exec()).to.be.rejectedWith("Unauthorized");
+            const res = await exec();
+            expectErrorCode(res, 401);
+        });
+
+    });
+
+    describe("GET / getUserIdFromEmail / :email", () => {
+        let emailQuery;
+        let otherUser;
+
+        const exec = () => {
+            return request(server)
+                .get("/api/users/getUserIdFromEmail/" + emailQuery)
+                .set('x-auth-token', token);
+        };
+
+        beforeEach(async () => {
+            user = new User({
+                email: "hej@hej.com",
+                password: "yo",
+                role: 1,
+            });
+            otherUser = new User({
+                email: "test@test.com",
+                password: "whatever",
+                role: 1,
+            });
+            await user.save();
+            await otherUser.save();
+            token = user.generateAuthToken();
+            emailQuery = otherUser.email;
+        });
+
+        it("Should return 403 if user was not a registered user", async () => {
+            user.role = 0;
+            await user.save();
+            token = user.generateAuthToken();
+            const res = await exec();
+            expectErrorCode(res, 403);
+        });
+
+        it("Should return 401 if token not provided", async () => {
+            token = null;
+            const res = await exec();
+            expectErrorCode(res, 401);
+        });
+
+        it("Should return 404 if no user with the email was found", async () => {
+            emailQuery = "notfound@email.com";
+            const res = await exec();
+            expectErrorCode(res, 404);
+        });
+
+        it("Should find the user id if a user with the email was found", async () => {
+            const res = await exec();
+            expect(res.text).to.be.equal(otherUser.id, "Correct id of searched user not found");
         });
 
     });
@@ -84,14 +141,15 @@ describe('/api/users', () => {
 
             const exec = () => {
                 return request(server)
-                  .post("/api/users")
-                  .send(body);
+                    .post("/api/users")
+                    .send(body);
             };
 
             // 400 if random parameter in body is passed
             it('400 if  random parameter in body is passed', async () => {
-                body = {hej: "12345"};
-                await expect(exec()).to.be.rejectedWith("Bad Request");
+                body = { hej: "12345" };
+                const res = await exec();
+                expectErrorCode(res, 400);
             });
 
             it("Should have user role 0 when no email+password provided", async () => {
@@ -114,8 +172,8 @@ describe('/api/users', () => {
 
             const exec = () => {
                 return request(server)
-                  .post('/api/users')
-                  .send({email, password});
+                    .post('/api/users')
+                    .send({ email, password });
             };
 
             beforeEach(async () => {
@@ -135,19 +193,21 @@ describe('/api/users', () => {
                     console.log(e);
                 }
 
-                const user = await User.findOne({email});
+                const user = await User.findOne({ email });
 
                 assert.strictEqual(user.role, 1);
             });
 
             it("should return 400 if email invalid", async () => {
                 email = "user@";
-                await expect(exec()).to.be.rejectedWith("Bad Request");
+                const res = await exec();
+                expectErrorCode(res, 400);
             });
 
-            it("Should not allow two users to be created with the same email", async () => {
+            it("Should not allow (400) two users to be created with the same email", async () => {
                 await exec();
-                await expect(exec()).to.be.rejectedWith("Bad Request");
+                const res = await exec();
+                expectErrorCode(res, 400);
             });
 
             it("Should return json web token in header that can be decoded to valid mongoose _id", async () => {
@@ -187,24 +247,26 @@ describe('/api/users', () => {
 
         const exec = () => {
             return request(server)
-              .patch("/api/users/makeBuildingAdmin")
-              .set('x-auth-token', token)
-              .send({
-                  userId: newUserId,
-                  buildingId: buildingId
-              });
+                .patch("/api/users/makeBuildingAdmin")
+                .set('x-auth-token', token)
+                .send({
+                    userId: newUserId,
+                    buildingId: buildingId
+                });
         };
 
         it("Should return 403 if user was not admin on building", async () => {
             user.adminOnBuildings = [];
             await user.save();
 
-            await expect(exec()).to.be.rejectedWith("Forbidden");
+            const res = await exec();
+            expectErrorCode(res, 403);
         });
 
         it("Should return 401 if no token provided", async () => {
             token = null;
-            await expect(exec()).to.be.rejectedWith("Unauthorized");
+            const res = await exec();
+            expectErrorCode(res, 401);
         });
 
         it("Should return updated user with adminOnBuildings updated", async () => {
