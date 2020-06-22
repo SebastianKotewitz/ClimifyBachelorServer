@@ -1,5 +1,5 @@
 const jwt = require("jsonwebtoken");
-const {User} = require('../../models/user');
+const { User } = require('../../models/user');
 const request = require('supertest');
 const expect = require("chai").expect;
 const app = require('../..');
@@ -13,7 +13,7 @@ describe('/api/auth', () => {
 
     before(async () => {
         server = app.listen(config.get('port'));
-        await mongoose.connect(config.get('db'), {useNewUrlParser: true});
+        await mongoose.connect(config.get('db'), { useNewUrlParser: true });
     });
     after(async () => {
         await server.close();
@@ -31,7 +31,7 @@ describe('/api/auth', () => {
             password = "Asdf12345";
             const salt = await bcrypt.genSalt();
             hashedPassword = await bcrypt.hash(password, salt);
-            const user = new User({email, password: hashedPassword});
+            const user = new User({ email, password: hashedPassword });
             await user.save();
             userId = user.id;
         });
@@ -42,58 +42,48 @@ describe('/api/auth', () => {
 
         const exec = () => {
             return request(server)
-              .post("/api/auth")
-              .send({email, password});
+                .post("/api/auth")
+                .send({ email, password });
         };
 
         it("should return 400 if email not set", async () => {
             email = null;
             try {
-                await exec();
-            } catch (e) {
-                // console.log(e);
-                return expect(e.status).to.be.equal(400);
+                const res = await exec();
+                return expect(res.status).to.be.equal(400);
+            } catch (_) {
+                expect.fail("Should have failed");
             }
-
-            expect.fail("Should have failed");
         });
 
         it("Should return 400 if password not set", async () => {
             password = null;
             try {
-                await exec();
-            } catch (e) {
-                // console.log(e);
-                return expect(e.status).to.be.equal(400);
+                const res = await exec();
+                return expect(res.status).to.be.equal(400);
+            } catch (_) {
+                expect.fail("Should have failed");
             }
-            expect.fail("Should have failed");
         });
 
         it("Should return 400 if password invalid", async () => {
             password = "123";
-
             try {
-                await exec();
-            } catch (e) {
-                // console.log(e);
-                return expect(e.status).to.be.equal(400);
+                const res = await exec();
+                return expect(res.status).to.be.equal(400);
+            } catch (_) {
+                expect.fail("Should have failed");
             }
-
-            expect.fail("Should have failed");
-
         });
 
         it("Should return 400 if password wasn't correct", async () => {
             password = "Qwert12345";
-
             try {
-                await exec();
-            } catch (e) {
-                // console.log(e);
-                return expect(e.status).to.be.equal(400);
+                const res = await exec();
+                return expect(res.status).to.be.equal(400);
+            } catch (_) {
+                expect.fail("Should have failed");
             }
-
-            expect.fail("Should have failed but did not receive error");
         });
 
         it("Should return 200 if email and password valid", async () => {
@@ -103,15 +93,12 @@ describe('/api/auth', () => {
 
         it("Should return 400 if user did not exist", async () => {
             email = "asd@asd.dk";
-            let res;
             try {
-                res = await exec();
-            } catch (e) {
-                // console.log(e);
-                return expect(e.status).to.be.equal(400);
+                const res = await exec();
+                return expect(res.status).to.be.equal(400);
+            } catch (_) {
+                expect.fail("Should have failed");
             }
-
-            expect.fail("Should have failed but gave status " + res.status);
         });
 
         it("Should return json web token that can be decoded to valid mongoose _id", async () => {

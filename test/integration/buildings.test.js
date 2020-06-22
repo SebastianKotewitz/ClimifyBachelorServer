@@ -64,12 +64,22 @@ describe('/api/buildings', () => {
 
         it('401 if json token not provided in header', async () => {
             token = null;
-            await expect(exec()).to.be.rejectedWith("Unauthorized");
+            try {
+                const res = await exec();
+                return expect(res.status).to.be.equal(401);
+            } catch (_) {
+                expect.fail("Should have returned unauthorized");
+            }
         });
 
         it('400 if name not provided', async () => {
             buildingName = null;
-            await expect(exec()).to.be.rejectedWith("Bad Request");
+            try {
+                const res = await exec();
+                return expect(res.status).to.be.equal(400);
+            } catch (_) {
+                expect.fail("Should have returned bad request");
+            }
         });
 
         it('should have user as admin on newly posted building', async () => {
@@ -84,7 +94,12 @@ describe('/api/buildings', () => {
         it("should return 403 if user not authorized with login role >= 1", async () => {
             user.role = 0;
             await user.save();
-            await expect(exec()).to.be.rejectedWith("Forbidden");
+            try {
+                const res = await exec();
+                return expect(res.status).to.be.equal(403);
+            } catch (_) {
+                expect.fail("Should have returned forbidden");
+            }
         });
 
     });
