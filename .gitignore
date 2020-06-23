@@ -80,3 +80,7 @@ typings/
 
 # DynamoDB Local files
 .dynamodb/
+
+# Test results
+Test Results - test.html
+Test Results - test.xml
